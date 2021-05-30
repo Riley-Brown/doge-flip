@@ -31,7 +31,6 @@
     "react-transition-group": "^4.4.2",
     "redux": "^4.1.0",
     "redux-logger": "^3.0.6",
-    "sweetalert2-react": "^0.8.3",
     "typescript": "^4.3.2",
     "web-vitals": "^1.1.2"
   },
