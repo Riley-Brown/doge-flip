@@ -5,10 +5,8 @@ import './CoinFlips.scss';
 import dogeLogo from 'Assets/doge-logo.png';
 
 import { API_ROOT, getActiveCoinFlips } from 'API';
-import { useTypedSelector } from 'Reducers';
 
 import Deposit from 'Components/Deposit';
-import RotatingCoin from 'Components/RotatingCoin';
 
 import CreateFlip from './CreateFlip';
 import CoinFlip from './CoinFlip';
@@ -47,7 +45,7 @@ export default function CoinFlips() {
     <div id="coin-flips" style={{ margin: 'auto', padding: '50px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <Deposit />
-        <RotatingCoin />
+
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <img style={{ width: 200, marginRight: 20 }} src={dogeLogo} alt="" />
           <div>
