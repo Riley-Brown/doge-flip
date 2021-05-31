@@ -121,10 +121,11 @@ router.post('/sync-wallet', async (req, res) => {
       return res.send({
         type: 'ok',
         data: {
-          publicAddress: updateWallet.value.publicAddress,
-          userId: updateWallet.value.userId,
           balance: updateWallet.value.balance,
-          network: updateWallet.value.network
+          displayName: updateWallet.value.displayName,
+          network: updateWallet.value.network,
+          publicAddress: updateWallet.value.publicAddress,
+          userId: updateWallet.value.userId
         }
       });
     }
@@ -133,10 +134,11 @@ router.post('/sync-wallet', async (req, res) => {
   res.send({
     type: 'ok',
     data: {
-      publicAddress: wallet.publicAddress,
       balance: wallet.balance,
-      userId: wallet.userId,
-      network: wallet.network
+      displayName: wallet.displayName,
+      network: wallet.network,
+      publicAddress: wallet.publicAddress,
+      userId: wallet.userId
     }
   });
 });
