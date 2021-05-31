@@ -38,10 +38,7 @@ router.post('/update', async (req, res) => {
   const { publicAddress, displayName } = req.body;
 
   const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
-
-  const wallet = await walletsCollection.findOne({
-    publicAddress
-  });
+  const wallet = await walletsCollection.findOne({ publicAddress });
 
   if (!wallet) {
     return res
@@ -55,7 +52,10 @@ router.post('/update', async (req, res) => {
       .json({ type: 'error', message: 'Invalid parameters' });
   }
 
-  await wallet.findOneAndUpdate({ publicAddress }, { $set: { displayName } });
+  await walletsCollection.findOneAndUpdate(
+    { publicAddress },
+    { $set: { displayName } }
+  );
 
   res.send({ type: 'ok' });
 });
@@ -70,10 +70,11 @@ router.post('/', async (req, res) => {
   res.send({
     type: 'ok',
     data: {
-      publicAddress: data.publicAddress,
       balance: data.balance,
-      userId: data.userId,
-      network: data.network
+      displayName: data.displayName,
+      network: data.network,
+      publicAddress: data.publicAddress,
+      userId: data.userId
     }
   });
 });
