@@ -1,0 +1,125 @@
+#rotating-coin {
+  $coin-diameter: 100px;
+  $coin-thickness: 20px;
+  $coin-color: #e8d0bb;
+  $coin-front: 'https://i.imgur.com/53Ap68J.png';
+  $coin-back: 'https://i.imgur.com/stW1tjd.png';
+  $edge-faces: 80;
+  $edge-face-length: 3.14 * $coin-diameter/$edge-faces;
+  $turn-time: 3s;
+  align-self: flex-end;
+
+  .coin {
+    position: relative;
+    width: $coin-diameter;
+    height: $coin-diameter;
+    // margin: 50px auto;
+    transform-style: preserve-3d;
+    // animation: rotate3d 12s linear forwards;
+    transition: all 0.3s;
+  }
+
+  .coin__front,
+  .coin__back {
+    position: absolute;
+    width: $coin-diameter;
+    height: $coin-diameter;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: $coin-color;
+
+    &:after {
+      content: '';
+      position: absolute;
+      left: -$coin-diameter/2;
+      bottom: 100%;
+      display: block;
+      height: $coin-diameter/1.5;
+      width: $coin-diameter * 2;
+      background: #fff;
+      opacity: 0.3;
+      animation: shine linear $turn-time/2 infinite;
+    }
+  }
+
+  .coin__front {
+    background-image: url($coin-front);
+    background-size: cover;
+    transform: translateZ($coin-thickness/2);
+  }
+  .coin__back {
+    background-image: url($coin-back);
+    background-size: cover;
+    transform: translateZ(-$coin-thickness/2) rotateY(180deg);
+  }
+
+  .coin__edge {
+    @for $i from 1 through $edge-faces {
+      div:nth-child(#{$i}) {
+        position: absolute;
+        height: $edge-face-length;
+        width: $coin-thickness;
+        background: darken(
+          $coin-color,
+          (($i - $edge-faces/2) * ($i - $edge-faces/2)) /
+            ($edge-faces * $edge-faces/4) *
+            100 *
+            0.7
+        );
+        transform: translateY(#{$coin-diameter/2-$edge-face-length/2})
+          translateX(#{$coin-diameter/2-$coin-thickness/2})
+          rotateZ(360deg / $edge-faces * $i + 90)
+          translateX(#{$coin-diameter/2})
+          rotateY(90deg);
+      }
+    }
+  }
+
+  .coin__shadow {
+    position: absolute;
+    width: $coin-diameter;
+    height: $coin-thickness;
+    border-radius: 50%;
+    background: #000;
+    box-shadow: 0 0 $coin-thickness * 5 $coin-thickness * 5 #000;
+    opacity: 0.125;
+    transform: rotateX(90deg) translateZ(-$coin-diameter * 1.1) scale(0.5);
+  }
+
+  @keyframes rotate3d {
+    0% {
+      transform: perspective(1000px) rotateY(0deg);
+    }
+    100% {
+      transform: perspective(1000px) rotateY(12000deg);
+    }
+  }
+
+  @keyframes rotate3dHeads {
+    0% {
+      transform: perspective(1000px) rotateY(0deg);
+    }
+    100% {
+      transform: perspective(1000px) rotateY(1800deg);
+    }
+  }
+
+  @keyframes rotate3dTails {
+    0% {
+      transform: perspective(1000px) rotateY(0deg);
+    }
+    100% {
+      transform: perspective(1000px) rotateY(1975deg);
+    }
+  }
+
+  @keyframes shine {
+    0%,
+    15% {
+      transform: translateY($coin-diameter * 2) rotate(-40deg);
+    }
+    50% {
+      transform: translateY(-$coin-diameter) rotate(-40deg);
+    }
+  }
+}
