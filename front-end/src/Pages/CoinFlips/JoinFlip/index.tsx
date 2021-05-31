@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SweetAlert from 'react-bootstrap-sweetalert';
 import { SweetAlertType } from 'react-bootstrap-sweetalert/dist/types';
 import { useDispatch } from 'react-redux';
@@ -9,8 +9,9 @@ import Portal from 'Components/Portal';
 import { useTypedSelector } from 'Reducers';
 import { updateAccount } from 'Actions';
 import { joinCoinFlip } from 'API';
+import { CoinFlipTypes } from '../CoinFlip';
 
-export default function JoinFlip({ flip }: { flip: any }) {
+export default function JoinFlip({ coinFlip }: { coinFlip: CoinFlipTypes }) {
   const [show, setShow] = useState(false);
   const [errorType, setErrorType] =
     useState<'balanceError' | 'joinError' | 'walletError'>();
@@ -25,20 +26,22 @@ export default function JoinFlip({ flip }: { flip: any }) {
   const handleJoinFlip = async () => {
     setLoading(true);
 
-    if (account.balance < flip.dogeAmount) {
+    if (account.balance < coinFlip.dogeAmount) {
       setType('error');
       setErrorType('balanceError');
+      setLoading(false);
       return;
     }
 
     const join = await joinCoinFlip({
       userId: account.userId,
-      coinFlipId: flip._id
+      coinFlipId: coinFlip._id
     });
 
     if (join.type === 'ok') {
       setType('success');
       dispatch(updateAccount({ balance: join.data.balance }));
+      setTimeout(() => setShow(false), 1000);
     } else {
       setType('error');
     }
@@ -46,17 +49,51 @@ export default function JoinFlip({ flip }: { flip: any }) {
     setLoading(false);
   };
 
+  const handleResetState = () => {
+    setType('info');
+    setLoading(false);
+    setErrorType(undefined);
+  };
+
+  useEffect(() => {
+    handleResetState();
+  }, [show]);
+
   return (
     <>
       <button onClick={() => setShow(true)} className="btn join">
         Join flip
       </button>
-      <Portal id="join-flip-portal">
-        <SweetAlert
-          title="Join this flip"
-          onConfirm={handleJoinFlip}
-          customButtons={
-            <div>
+      {show && (
+        <Portal id="join-flip-portal">
+          <SweetAlert
+            title={
+              errorType === 'balanceError'
+                ? 'Insufficient balance'
+                : 'Join this flip'
+            }
+            onConfirm={() => null}
+            showCancel={false}
+            showConfirm={false}
+            type={type}
+            onCancel={() => setShow(false)}
+            show={show}
+            cancelBtnStyle={{ minWidth: '100px' }}
+            confirmBtnStyle={{
+              borderColor: 'var(--primary)',
+              minWidth: '100px',
+              textDecoration: 'none'
+            }}
+          >
+            {errorType === 'balanceError' ? (
+              <p>Not enough balance to enter this flip</p>
+            ) : (
+              <p>
+                Joining this flip will deduct {coinFlip.dogeAmount} doge from
+                your balance
+              </p>
+            )}
+            <div style={{ marginTop: 40 }}>
               <button
                 style={{
                   minWidth: '150px',
@@ -83,24 +120,9 @@ export default function JoinFlip({ flip }: { flip: any }) {
                 Join flip
               </SpinnerButton>
             </div>
-          }
-          showCancel={true}
-          type={type}
-          onCancel={() => setShow(false)}
-          show={show}
-          cancelBtnStyle={{ minWidth: '100px' }}
-          confirmBtnStyle={{
-            borderColor: 'var(--primary)',
-            minWidth: '100px',
-            textDecoration: 'none'
-          }}
-        >
-          <p>
-            Joining this flip will deduct {flip.dogeAmount} doge from your
-            balance
-          </p>
-        </SweetAlert>
-      </Portal>
+          </SweetAlert>
+        </Portal>
+      )}
     </>
   );
 }
