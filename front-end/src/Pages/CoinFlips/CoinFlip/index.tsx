@@ -142,14 +142,7 @@ export default function CoinFlip({
             alt={coinFlipState.creatorSide}
           />
         </div>
-        <span
-          style={{
-            margin: '0 20px',
-            alignSelf: 'stretch',
-            display: 'flex',
-            alignItems: 'center'
-          }}
-        >
+        <div className="vs-wrapper">
           {coinFlipState.status === 'active' && 'vs'}
           {coinFlipState.status === 'inProgress' &&
             `flipping in ${coinFlipState.startingIn} seconds`}
@@ -164,8 +157,7 @@ export default function CoinFlip({
               <p>Winner: {coinFlipState.winnerDisplayName}</p>
             </div>
           )}
-        </span>
-
+        </div>
         <div
           className="side"
           data-winner={

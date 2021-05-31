@@ -42,12 +42,12 @@ export default function CoinFlips() {
   }, []);
 
   return (
-    <div id="coin-flips" style={{ margin: 'auto', padding: '50px' }}>
+    <div id="coin-flips">
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <Deposit />
 
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <img style={{ width: 200, marginRight: 20 }} src={dogeLogo} alt="" />
+        <div className="much-style">
+          <img src={dogeLogo} alt="" />
           <div>
             <h1>Wow much website</h1>
             <h1>Very style</h1>
