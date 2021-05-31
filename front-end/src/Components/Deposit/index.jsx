@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-import { createWallet, syncWalletData } from 'API';
+import { createWallet, syncWalletData, updateWallet } from 'API';
 
 import QRCode from 'qrcode.react';
 
@@ -18,6 +18,10 @@ export default function Deposit() {
   const dispatch = useDispatch();
 
   const balance = useTypedSelector((state) => state.account.balance);
+  const account = useTypedSelector((state) => state.account);
+
+  const [isEditingDisplayName, setIsEditingDisplayName] = useState(false);
+  const [updatedDisplayName, setUpdatedDisplayName] = useState('');
 
   useEffect(() => {
     const lsPubKey = localStorage.getItem('publicDogeKey');
@@ -101,6 +105,14 @@ export default function Deposit() {
     }
   }, [publicDogeKey]);
 
+  const handleUpdateAccount = async (e) => {
+    e.preventDefault();
+    await updateWallet({
+      displayName: updatedDisplayName,
+      publicAddress: publicDogeKey
+    });
+  };
+
   return (
     <div style={{ display: 'flex', textAlign: 'center', alignItems: 'center' }}>
       <div>
@@ -112,6 +124,21 @@ export default function Deposit() {
           Current system using DOGE test net, DO NOT send real doge, you will
           lose it forever
         </p>
+        <div style={{ margin: '20px 0' }}>
+          {(!account.displayName || isEditingDisplayName) && (
+            <form onSubmit={handleUpdateAccount}>
+              <label htmlFor="display-name">Display name</label>
+              <input
+                type="text"
+                id="display-name"
+                defaultValue={account.displayName}
+                style={{ padding: 5, marginLeft: 10 }}
+                onChange={(e) => setUpdatedDisplayName(e.target.value)}
+              />
+            </form>
+          )}
+          {account.displayName && <h2>Display name: {account.displayName}</h2>}
+        </div>
         {balance && (
           <div
             style={{
