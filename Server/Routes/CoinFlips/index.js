@@ -62,12 +62,13 @@ router.post('/create', async (req, res) => {
 
     if (userWallet.balance < dogeAmount) {
       return res.status(400).json({
-        type: 'error',
+        type: 'balanceError',
         message: 'Doge amount cannot be greater than current balance'
       });
     }
 
     const coinFlipData = {
+      createdByDisplayName: userWallet.displayName,
       createdAt: timestamp,
       createdByUserId: userId,
       creatorSide: side,
@@ -85,6 +86,8 @@ router.post('/create', async (req, res) => {
 
     await activeCoinFlipsCollection.insertOne(coinFlipData);
 
+    coinFlipEvents.emit('coinFlipCreated', coinFlipData);
+
     res.send({
       type: 'ok',
       message: 'Successfully created coin flip',
@@ -96,13 +99,17 @@ router.post('/create', async (req, res) => {
 });
 
 router.get('/active', async (req, res) => {
-  const activeCoinFlipsCollection = mongoClient
-    .db('doge-flip')
-    .collection('active-coin-flips');
+  try {
+    const activeCoinFlipsCollection = mongoClient
+      .db('doge-flip')
+      .collection('active-coin-flips');
 
-  const activeCoinFlips = await activeCoinFlipsCollection.find({}).toArray();
+    const activeCoinFlips = await activeCoinFlipsCollection.find({}).toArray();
 
-  res.send({ type: 'ok', data: activeCoinFlips });
+    res.send({ type: 'ok', data: activeCoinFlips });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 router.post('/join', async (req, res) => {
@@ -141,7 +148,6 @@ router.post('/join', async (req, res) => {
   }
 
   const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
-
   const wallet = await walletsCollection.findOne({ _id: userId });
 
   if (!wallet) {
@@ -174,6 +180,7 @@ router.post('/join', async (req, res) => {
       $set: {
         status: 'inProgress',
         joinedByUserId: userId,
+        joinedByDisplayName: wallet.displayName,
         joinedByUserAt: joinDate,
         joinedUserSide: side
       }
@@ -185,18 +192,41 @@ router.post('/join', async (req, res) => {
   const coinFlipData = { ...updatedCoinFlip.value, startingIn: countDown };
 
   const handleWinner = async () => {
-    console.log('handling winner');
     try {
       const { int, bool, float, hash } = generateRandomNumber();
       const winningSide = float < 0.5 ? 'heads' : 'tails';
       let winnerId;
-      const winningAmount = activeCoinFlip.dogeAmount * 2;
+      let winnerDisplayName;
+      const winningAmount = coinFlipData.dogeAmount * 2;
 
-      if (activeCoinFlip.creatorSide === winningSide) {
-        winnerId = activeCoinFlip.createdByUserId;
-      } else if (activeCoinFlip.joinedUserSide === winningSide) {
-        winnerId = activeCoinFlip.joinedByUserId;
+      coinFlipEvents.emit('flipping', {
+        ...coinFlipData,
+        winningSide,
+        status: 'flipping'
+      });
+
+      await new Promise((res) => {
+        console.log('waiting 4 seconds for flipping animation');
+
+        setTimeout(() => {
+          res();
+        }, 4000);
+      });
+
+      if (coinFlipData.creatorSide === winningSide) {
+        winnerId = coinFlipData.createdByUserId;
+        winnerDisplayName = coinFlipData.createdByDisplayName;
+      } else if (coinFlipData.joinedUserSide === winningSide) {
+        winnerId = coinFlipData.joinedByUserId;
+        winnerDisplayName = coinFlipData.joinedByDisplayName;
       }
+
+      console.log('handle winner', {
+        activeCoinFlip,
+        coinFlipData,
+        winnerId,
+        winningSide
+      });
 
       const finishedCoinFlip = await activeCoinFlipsCollection.findOneAndUpdate(
         { _id: ObjectId(coinFlipId) },
@@ -207,7 +237,8 @@ router.post('/join', async (req, res) => {
             winnerId,
             float,
             hash,
-            winningAmount
+            winningAmount,
+            winnerDisplayName
           }
         },
         { returnDocument: 'after' }
@@ -215,7 +246,7 @@ router.post('/join', async (req, res) => {
 
       await walletsCollection.findOneAndUpdate(
         { _id: winnerId },
-        { $inc: { balance: activeCoinFlip.dogeAmount * 2 } }
+        { $inc: { balance: coinFlipData.dogeAmount * 2 } }
       );
 
       coinFlipEvents.emit('finished', {
@@ -262,28 +293,36 @@ router.get('/events', async (req, res) => {
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders(); // flush the headers to establish SSE with client
 
-  coinFlipEvents.addListener('inProgress', (coinFlipData) => {
-    console.log({ inProgressEvent: coinFlipData });
-    res.write(
-      `data: ${JSON.stringify({
-        eventType: 'inProgress',
-        ...coinFlipData
-      })}\n\n`
-    );
-  });
+  const handleSendEvent = (eventType, data) => {
+    if (res.writableEnded) {
+      return;
+    }
 
-  coinFlipEvents.addListener('finished', (coinFlipData) => {
-    console.log({ finishedEvent: coinFlipData });
-    res.write(
+    return res.write(
       `data: ${JSON.stringify({
-        eventType: 'finished',
-        ...coinFlipData
+        eventType,
+        ...data
       })}\n\n`
     );
-  });
+  };
+
+  const events = [
+    { eventType: 'inProgress' },
+    { eventType: 'flipping' },
+    { eventType: 'finished' },
+    { eventType: 'coinFlipCreated' }
+  ];
+
+  events.forEach((event) =>
+    coinFlipEvents.addListener(event.eventType, (coinFlipData) => {
+      handleSendEvent(event.eventType, coinFlipData);
+    })
+  );
 
   res.on('close', () => {
-    coinFlipEvents.removeAllListeners();
+    events.forEach((event) =>
+      coinFlipEvents.removeListener(event.eventType, handleSendEvent)
+    );
     res.end();
   });
 });
