@@ -8,6 +8,18 @@
     border-radius: 4px;
     margin-bottom: 20px;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+    .sides-wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex: 1;
+      .side {
+        align-self: stretch;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+      }
+    }
     h3,
     p {
       margin: 0;
@@ -18,6 +30,7 @@
     }
     img {
       width: 100px;
+      height: 100px;
     }
     .flip-info {
       display: flex;
@@ -30,14 +43,16 @@
       }
     }
 
-    .sides-logo-wrapper {
-      padding: 5px;
-      border-radius: 4px;
-      &[data-winner='true'] {
-        background: var(--success);
-      }
-      &[data-loser='true'] {
-        background: var(--danger);
+    .sides-wrapper {
+      .side {
+        padding: 5px;
+        border-radius: 4px;
+        &[data-winner='true'] {
+          background: var(--success-darker);
+        }
+        &[data-loser='true'] {
+          background: var(--danger);
+        }
       }
     }
 
