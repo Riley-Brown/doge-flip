@@ -7,7 +7,7 @@ export async function createWallet() {
 }
 
 export async function updateWallet({ publicAddress, displayName }) {
-  const res = await fetch(`${API_ROOT}/wallet/create`, {
+  const res = await fetch(`${API_ROOT}/wallet/update`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
