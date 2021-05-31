@@ -85,7 +85,7 @@ export default function CoinFlip({
             Congratulations! You just won {coinFlipEvent.winningAmount} doge
             coin
           </h2>,
-          { appearance: 'success' }
+          { appearance: 'success', autoDismiss: true }
         );
 
         dispatch(
