@@ -55,12 +55,23 @@ export default function CreateFlip({
       });
 
       if (create.type === 'ok') {
-        setActiveCoinFlips((prev) => [create.data.coinFlipData, ...prev]);
         dispatch(updateAccount({ balance: create.data.balance }));
 
-        addToast(<h2>Successfully created coin flip!</h2>, {
-          appearance: 'success',
-          autoDismiss: true
+        addToast(
+          <h2 style={{ margin: 0 }}>Successfully created coin flip!</h2>,
+          {
+            appearance: 'success',
+            autoDismiss: true
+          }
+        );
+
+        setShow(false);
+        setSide(undefined);
+      }
+
+      if (create.type === 'balanceError') {
+        setError('dogeAmount', {
+          message: 'Doge amount cannot be more than current balance'
         });
       }
 
