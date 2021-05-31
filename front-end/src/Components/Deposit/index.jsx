@@ -4,8 +4,10 @@ import { createWallet, syncWalletData, updateWallet } from 'API';
 
 import QRCode from 'qrcode.react';
 
+import { ReactComponent as EditSvg } from 'Assets/edit.svg';
+
 import { useDispatch } from 'react-redux';
-import { setAccount } from 'Actions/account';
+import { setAccount, updateAccount } from 'Actions/account';
 import { useTypedSelector } from 'Reducers';
 
 export default function Deposit() {
@@ -111,10 +113,13 @@ export default function Deposit() {
       displayName: updatedDisplayName,
       publicAddress: publicDogeKey
     });
+
+    dispatch(updateAccount({ displayName: updatedDisplayName }));
+    setIsEditingDisplayName(false);
   };
 
   return (
-    <div style={{ display: 'flex', textAlign: 'center', alignItems: 'center' }}>
+    <div className="deposit">
       <div>
         <h1>Deposit doge</h1>
         <p>
@@ -137,20 +142,29 @@ export default function Deposit() {
               />
             </form>
           )}
-          {account.displayName && <h2>Display name: {account.displayName}</h2>}
+          {account.displayName && (
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 600 }}>
+              Display name: {account.displayName}
+              <button
+                className="btn"
+                onClick={() => setIsEditingDisplayName(true)}
+              >
+                <EditSvg />
+              </button>
+            </h2>
+          )}
         </div>
-        {balance && (
-          <div
-            style={{
-              backgroundColor: 'var(--success-darker)',
-              padding: 5,
-              color: '#fff',
-              borderRadius: 4
-            }}
-          >
-            <p style={{ fontWeight: 600 }}>Current doge balance: {balance}</p>
-          </div>
-        )}
+        <div
+          style={{
+            backgroundColor: 'var(--success-darker)',
+            padding: 5,
+            color: '#fff',
+            borderRadius: 4
+          }}
+        >
+          <p style={{ fontWeight: 600 }}>Current doge balance: {balance}</p>
+        </div>
+
         {pendingDeposit && (
           <div
             style={{
