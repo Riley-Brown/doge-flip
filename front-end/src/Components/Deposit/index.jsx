@@ -50,6 +50,16 @@ export default function Deposit() {
         'wss://slanger1.chain.so/app/e9f5cc20074501ca7395?protocol=7&client=js&version=2.1.6&flash=false'
       );
 
+      // Ping ws every 2 minutes to keep alive
+      setInterval(() => {
+        socket.send(
+          JSON.stringify({
+            event: 'pusher:ping',
+            data: {}
+          })
+        );
+      }, 120000);
+
       socket.onopen = (e) => {
         console.log(e);
       };
@@ -92,6 +102,12 @@ export default function Deposit() {
         if (parsed.event === 'confirm_tx') {
           setDepositConfirmed(true);
 
+          setTimeout(() => {
+            pendingDepositRef.current = undefined;
+            setPendingDeposit(false);
+            setDepositConfirmed(false);
+          }, 5000);
+
           const syncedWallet = await syncWalletData(publicDogeKey);
 
           dispatch(setAccount(syncedWallet.data));
@@ -99,7 +115,9 @@ export default function Deposit() {
           socket.send(
             JSON.stringify({
               event: 'pusher:unsubscribe',
-              data: { channel: pendingDepositRef.current.value.tx.txid }
+              data: {
+                channel: `confirm_tx_dogetest_${pendingDepositRef.current.value.tx.txid}`
+              }
             })
           );
         }
@@ -179,13 +197,20 @@ export default function Deposit() {
         {pendingDeposit && (
           <div
             style={{
-              background: depositConfirmed ? 'green' : 'red',
+              background: depositConfirmed
+                ? 'var(--success-darker)'
+                : 'var(--danger)',
               color: '#fff',
               padding: 10,
-              borderRadius: 4
+              borderRadius: 4,
+              marginTop: 20
             }}
           >
-            <h4>Pending transaction</h4>
+            <h4>
+              {depositConfirmed
+                ? 'Transaction confirmed! Balance has been updated'
+                : 'Pending transaction'}
+            </h4>
             <h4>Amount: {pendingDeposit.value.value_received}</h4>
           </div>
         )}
