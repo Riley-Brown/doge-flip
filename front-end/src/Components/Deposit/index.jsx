@@ -129,6 +129,17 @@ export default function Deposit() {
           Current system using DOGE test net, DO NOT send real doge, you will
           lose it forever
         </p>
+        <p>
+          Use the{' '}
+          <a
+            href="https://doge-faucet-testnet.ggcorp.fr/"
+            target="_blank"
+            rel="noopener"
+          >
+            Doge TestNet Faucet
+          </a>{' '}
+          to send test balance
+        </p>
         <div style={{ margin: '20px 0' }}>
           {(!account.displayName || isEditingDisplayName) && (
             <form onSubmit={handleUpdateAccount}>
