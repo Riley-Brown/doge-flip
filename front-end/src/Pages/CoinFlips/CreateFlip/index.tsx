@@ -34,14 +34,26 @@ export default function CreateFlip({
     register,
     handleSubmit,
     formState: { errors },
-    setValue
-  } = useForm<{ dogeAmount: number; side: 'heads' | 'tails' }>();
+    setValue,
+    clearErrors
+  } = useForm<{ dogeAmount: number | null; side: string }>();
 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     register('side', { required: 'Side is required' });
   }, []);
+
+  useEffect(() => {
+    return () => handleResetState();
+  }, [show]);
+
+  const handleResetState = () => {
+    setSide(undefined);
+    setValue('side', '');
+    setValue('dogeAmount', null);
+    clearErrors();
+  };
 
   const onSubmit = handleSubmit(async (data) => {
     console.log(data);
