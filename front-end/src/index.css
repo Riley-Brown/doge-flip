@@ -5,6 +5,11 @@
   --secondary: #54667a;
   --bg-dark: #222;
   --success-darker: hsl(134, 61%, 35%);
+  --bg-primary: #fff;
+  --bg-secondary: #f0f4fc;
+  --main-font-color: #212529;
+  --main-border-color: #ced4da;
+  --warning: #ffc107;
 }
 
 body {
@@ -14,6 +19,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-secondary);
 }
 
 code {
