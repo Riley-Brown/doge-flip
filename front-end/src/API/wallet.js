@@ -1,43 +1,38 @@
 import { API_ROOT } from './root';
 
-export async function createWallet() {
-  const res = await fetch(`${API_ROOT}/wallet/create`);
-  const json = await res.json();
-  return json;
-}
-
-export async function updateWallet({ publicAddress, displayName }) {
+export async function updateWallet({ displayName }) {
   const res = await fetch(`${API_ROOT}/wallet/update`, {
     method: 'POST',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ publicAddress, displayName })
+    body: JSON.stringify({ displayName })
   });
   const json = await res.json();
   return json;
 }
 
-export async function getWalletData(publicAddress) {
+export async function getWalletData() {
   const res = await fetch(`${API_ROOT}/wallet`, {
-    method: 'POST',
+    method: 'GET',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ publicAddress })
+    }
   });
 
   const json = await res.json();
   return json;
 }
 
-export async function syncWalletData(publicAddress) {
+export async function syncWalletData() {
   const res = await fetch(`${API_ROOT}/wallet/sync-wallet`, {
     method: 'POST',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ publicAddress })
+    }
   });
 
   const json = await res.json();
