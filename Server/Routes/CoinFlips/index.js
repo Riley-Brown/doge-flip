@@ -36,6 +36,7 @@ router.post('/create', async (req, res) => {
       typeof userId !== 'string' ||
       !dogeAmount ||
       typeof dogeAmount !== 'number' ||
+      dogeAmount < 0 ||
       !side ||
       (side !== 'heads' && side !== 'tails')
     ) {
