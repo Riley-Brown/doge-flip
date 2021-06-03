@@ -11,13 +11,23 @@ import { handleSendDogeCoin } from '../../Components/Transactions';
 
 import { v4 as uuid } from 'uuid';
 
+import { createToken } from '../../Auth';
+
 const router = Router();
 
-router.get('/create', async (req, res) => {
+async function handleCreateWallet(res) {
   const dogeVersions = coinInfo('DOGE-TEST').versions;
   const key = new CoinKey.createRandom(dogeVersions);
 
   const userId = uuid();
+
+  const token = createToken({ userId, publicAddress: key.publicAddress });
+
+  res.cookie('userToken', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'development' ? false : true,
+    sameSite: process.env.NODE_ENV === 'development' ? 'lax' : 'none'
+  });
 
   const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
 
@@ -31,11 +41,12 @@ router.get('/create', async (req, res) => {
     userId
   });
 
-  res.send({ type: 'ok', data: { publicAddress: key.publicAddress, userId } });
-});
+  return { publicAddress: key.publicAddress, userId };
+}
 
 router.post('/update', async (req, res) => {
-  const { publicAddress, displayName } = req.body;
+  const { displayName } = req.body;
+  const { publicAddress } = res.locals.userTokenObject;
 
   const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
   const wallet = await walletsCollection.findOne({ publicAddress });
@@ -60,12 +71,19 @@ router.post('/update', async (req, res) => {
   res.send({ type: 'ok' });
 });
 
-router.post('/', async (req, res) => {
+router.get('/', async (req, res) => {
+  let { publicAddress } = res.locals.userTokenObject;
+
+  // Generate and save wallet for first time users
+  // and sets encrypted jwt cookie in browser
+  if (!publicAddress) {
+    const data = await handleCreateWallet(res);
+    publicAddress = data.publicAddress;
+  }
+
   const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
 
-  const data = await walletsCollection.findOne({
-    publicAddress: req.body.publicAddress
-  });
+  const data = await walletsCollection.findOne({ publicAddress });
 
   res.send({
     type: 'ok',
@@ -80,7 +98,13 @@ router.post('/', async (req, res) => {
 });
 
 router.post('/sync-wallet', async (req, res) => {
-  const { publicAddress } = req.body;
+  const { publicAddress } = res.locals.userTokenObject;
+
+  if (!publicAddress) {
+    return res
+      .status(403)
+      .json({ type: 'error', message: 'This wallet does not exist' });
+  }
 
   const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
 
