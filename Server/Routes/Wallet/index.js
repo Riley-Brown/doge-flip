@@ -25,8 +25,10 @@ async function handleCreateWallet(res) {
 
   res.cookie('userToken', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'development' ? false : true,
-    sameSite: process.env.NODE_ENV === 'development' ? 'lax' : 'none'
+    // secure: process.env.NODE_ENV === 'development' ? false : true,
+    secure: true,
+    sameSite: 'strict'
+    // sameSite: process.env.NODE_ENV === 'development' ? 'lax' : 'none'
   });
 
   const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
