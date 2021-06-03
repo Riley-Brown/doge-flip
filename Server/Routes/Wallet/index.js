@@ -27,7 +27,7 @@ async function handleCreateWallet(res) {
     httpOnly: true,
     // secure: process.env.NODE_ENV === 'development' ? false : true,
     secure: true,
-    sameSite: 'strict'
+    sameSite: 'None'
     // sameSite: process.env.NODE_ENV === 'development' ? 'lax' : 'none'
   });
 
