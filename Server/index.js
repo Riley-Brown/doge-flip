@@ -13,7 +13,8 @@ const corsOptions = {
   credentials: true,
   origin: [
     'http://localhost:3000',
-    'https://competent-shannon-ea4b21.netlify.app'
+    'https://competent-shannon-ea4b21.netlify.app',
+    'https://doge-flip.riley.gg'
   ]
 };
 
