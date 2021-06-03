@@ -65,9 +65,8 @@ export default function Deposit() {
       };
 
       socket.onmessage = async (e) => {
-        console.log(e.data);
         const parsed = JSON.parse(e.data);
-        const parsedData = JSON.parse(parsed.data);
+        const parsedData = JSON.parse(parsed.data || '{}');
 
         console.log(parsedData);
 
@@ -147,7 +146,7 @@ export default function Deposit() {
           Current system using DOGE test net, DO NOT send real doge, you will
           lose it forever
         </p>
-        <p>
+        <p style={{ marginBottom: 40 }}>
           Use the{' '}
           <a
             href="https://doge-faucet-testnet.ggcorp.fr/"
@@ -158,23 +157,44 @@ export default function Deposit() {
           </a>{' '}
           to send test balance
         </p>
-        <div style={{ margin: '20px 0' }}>
-          {(!account.displayName || isEditingDisplayName) && (
+        <div style={{ margin: '10px 0' }}>
+          {!account.displayName || isEditingDisplayName ? (
             <form onSubmit={handleUpdateAccount}>
-              <label htmlFor="display-name">Display name</label>
-              <input
-                type="text"
-                id="display-name"
-                defaultValue={account.displayName}
-                style={{ padding: 5, marginLeft: 10 }}
-                onChange={(e) => setUpdatedDisplayName(e.target.value)}
-              />
+              <div className="input-wrapper">
+                <label htmlFor="display-name">Display name</label>
+                <input
+                  type="text"
+                  id="display-name"
+                  defaultValue={account.displayName}
+                  onChange={(e) => setUpdatedDisplayName(e.target.value)}
+                />
+                <div className="btn-wrapper">
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => {
+                      setIsEditingDisplayName(false);
+                      setUpdatedDisplayName(account.displayName);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    style={{ background: 'var(--primary)', color: '#fff' }}
+                    className="btn"
+                  >
+                    Update name
+                  </button>
+                </div>
+              </div>
             </form>
-          )}
-          {account.displayName && (
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 600 }}>
-              Display name: {account.displayName}
+          ) : (
+            <h2 style={{ fontSize: '1rem', fontWeight: '400', margin: 0 }}>
+              Display name:{' '}
+              <strong style={{ fontWeight: 600 }}>{account.displayName}</strong>
               <button
+                style={{ padding: 0, marginLeft: 10 }}
                 className="btn"
                 onClick={() => setIsEditingDisplayName(true)}
               >
@@ -183,15 +203,15 @@ export default function Deposit() {
             </h2>
           )}
         </div>
-        <div
-          style={{
-            backgroundColor: 'var(--success-darker)',
-            padding: 5,
-            color: '#fff',
-            borderRadius: 4
-          }}
-        >
-          <p style={{ fontWeight: 600 }}>Current doge balance: {balance}</p>
+        <div>
+          <p style={{ margin: 0 }}>
+            Doge balance:{' '}
+            <span>
+              <strong style={{ fontWeight: 600 }}>
+                {balance.toLocaleString()}
+              </strong>
+            </span>
+          </p>
         </div>
 
         {pendingDeposit && (
@@ -199,25 +219,29 @@ export default function Deposit() {
             style={{
               background: depositConfirmed
                 ? 'var(--success-darker)'
-                : 'var(--danger)',
-              color: '#fff',
+                : 'var(--warning)',
+              color: depositConfirmed ? '#fff' : '#000',
               padding: 10,
               borderRadius: 4,
-              marginTop: 20
+              marginTop: 20,
+              textAlign: 'center'
             }}
           >
-            <h4>
+            <h3>
               {depositConfirmed
                 ? 'Transaction confirmed! Balance has been updated'
                 : 'Pending transaction'}
-            </h4>
-            <h4>Amount: {pendingDeposit.value.value_received}</h4>
+            </h3>
+            <h3>Amount: {pendingDeposit.value?.value_received}</h3>
+            {!depositConfirmed && (
+              <p>Waiting to be confirmed on doge blockchain</p>
+            )}
           </div>
         )}
       </div>
       {publicDogeKey && (
         <QRCode
-          style={{ marginLeft: 40 }}
+          className="qr-code"
           size={150}
           value={publicDogeKey}
           includeMargin={true}
