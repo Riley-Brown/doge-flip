@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-import { createWallet, syncWalletData, updateWallet } from 'API';
+import { getWalletData, syncWalletData, updateWallet } from 'API';
 
 import QRCode from 'qrcode.react';
 
@@ -26,17 +26,9 @@ export default function Deposit() {
   const [updatedDisplayName, setUpdatedDisplayName] = useState('');
 
   useEffect(() => {
-    const lsPubKey = localStorage.getItem('publicDogeKey');
-
-    if (!lsPubKey) {
-      createWallet().then(({ data }) => {
-        console.log(data);
-        setPublicDogeKey(data.publicAddress);
-        localStorage.setItem('publicDogeKey', data.publicAddress);
-      });
-    } else {
-      setPublicDogeKey(lsPubKey);
-    }
+    getWalletData().then(({ data }) => {
+      setPublicDogeKey(data.publicAddress);
+    });
   }, []);
 
   useEffect(() => {
