@@ -74,7 +74,6 @@ export default function CoinFlip({
   const dispatch = useDispatch();
 
   useEffect(() => {
-    console.log({ coinFlipEvent, coinFlipState, account });
     if (coinFlipEvent) {
       if (
         coinFlipEvent.status === 'finished' &&
