@@ -15,6 +15,8 @@ export default function Deposit() {
   const [pendingDeposit, setPendingDeposit] = useState();
   const [depositConfirmed, setDepositConfirmed] = useState(false);
 
+  const [loading, setLoading] = useState(true);
+
   const pendingDepositRef = useRef();
 
   const dispatch = useDispatch();
@@ -28,13 +30,17 @@ export default function Deposit() {
   useEffect(() => {
     getWalletData().then(({ data }) => {
       setPublicDogeKey(data.publicAddress);
+      dispatch(setAccount(data));
+      setLoading(false);
     });
   }, []);
 
   useEffect(() => {
     if (publicDogeKey) {
       syncWalletData(publicDogeKey).then((res) => {
-        dispatch(setAccount(res.data));
+        if (res.data.balance !== account.balance) {
+          dispatch(updateAccount({ balance: res.data.balance }));
+        }
       });
 
       // todo: make dynamic for doge live net depending on env
@@ -52,17 +58,10 @@ export default function Deposit() {
         );
       }, 120000);
 
-      socket.onopen = (e) => {
-        console.log(e);
-      };
-
       socket.onmessage = async (e) => {
         const parsed = JSON.parse(e.data);
         const parsedData = JSON.parse(parsed.data || '{}');
 
-        console.log(parsedData);
-
-        console.log(parsed);
         if (parsed.event === 'pusher:connection_established') {
           socket.send(
             JSON.stringify({
@@ -150,7 +149,7 @@ export default function Deposit() {
           to send test balance
         </p>
         <div style={{ margin: '10px 0' }}>
-          {!account.displayName || isEditingDisplayName ? (
+          {!loading && (!account.displayName || isEditingDisplayName) ? (
             <form onSubmit={handleUpdateAccount}>
               <div className="input-wrapper">
                 <label htmlFor="display-name">Display name</label>
@@ -231,15 +230,13 @@ export default function Deposit() {
           </div>
         )}
       </div>
-      {publicDogeKey && (
-        <QRCode
-          className="qr-code"
-          size={150}
-          value={publicDogeKey}
-          includeMargin={true}
-          bgColor="#fff"
-        />
-      )}
+      <QRCode
+        className="qr-code"
+        size={150}
+        value={publicDogeKey}
+        includeMargin={true}
+        bgColor="#fff"
+      />
     </div>
   );
 }
