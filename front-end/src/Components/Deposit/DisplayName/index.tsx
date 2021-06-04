@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
 import { ReactComponent as EditSvg } from 'Assets/edit.svg';
@@ -14,6 +14,12 @@ export default function DisplayName({ loading }: { loading: boolean }) {
   const displayName = useTypedSelector((state) => state.account.displayName);
 
   const [updatedDisplayName, setUpdatedDisplayName] = useState(displayName);
+
+  useEffect(() => {
+    if (displayName) {
+      setUpdatedDisplayName(displayName);
+    }
+  }, [displayName]);
 
   const handleUpdateAccount = async (e: FormEvent) => {
     e.preventDefault();
