@@ -10,6 +10,15 @@
   --main-font-color: #212529;
   --main-border-color: #ced4da;
   --warning: #ffc107;
+  --text-primary: var(--primary);
+}
+
+html[data-theme='dark'] {
+  --bg-primary: #333;
+  --bg-secondary: #444;
+  --main-font-color: #fff;
+  --main-border-color: #999;
+  --text-primary: hsl(222, 89%, 72%);
 }
 
 body {
