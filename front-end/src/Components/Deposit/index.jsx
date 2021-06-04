@@ -213,7 +213,7 @@ export default function Deposit() {
           )}
         </div>
         <div style={{ margin: '20px 0' }}>
-          <label style={{ display: 'flex', alignItems: 'center' }}>
+          <label style={{ display: 'inline-flex', alignItems: 'center' }}>
             <span style={{ marginRight: 10 }}>Dark mode</span>
             <Switch
               onChange={() => setDarkMode(!darkMode)}
