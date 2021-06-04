@@ -9,7 +9,7 @@
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev \"",
     "build:front-end": "npm --prefix front-end run build",
     "start": "node --experimental-specifier-resolution=node Server/index.js",
-    "client:dev": "cd front-end && npm run dev"
+    "client:dev": "npm --prefix front-end run dev"
   },
   "keywords": [],
   "author": "",

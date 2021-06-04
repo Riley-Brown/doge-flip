@@ -1,16 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 
-import { getWalletData, syncWalletData, updateWallet } from 'API';
+import { getWalletData, syncWalletData } from 'API';
 
 import QRCode from 'qrcode.react';
-
-import { ReactComponent as EditSvg } from 'Assets/edit.svg';
 
 import { useDispatch } from 'react-redux';
 import { setAccount, updateAccount } from 'Actions/account';
 import { useTypedSelector } from 'Reducers';
 
 import Switch from 'react-switch';
+import DisplayName from './DisplayName';
 
 const isDarkMode = JSON.parse(localStorage.getItem('darkMode'));
 
@@ -39,9 +38,6 @@ export default function Deposit() {
       document.documentElement.setAttribute('data-theme', 'light');
     }
   }, [darkMode]);
-
-  const [isEditingDisplayName, setIsEditingDisplayName] = useState(false);
-  const [updatedDisplayName, setUpdatedDisplayName] = useState('');
 
   useEffect(() => {
     getWalletData().then(({ data }) => {
@@ -98,7 +94,11 @@ export default function Deposit() {
           );
         }
 
-        if (parsed.event === 'balance_update') {
+        // If balance change < 0 that means the address is sending balance so don't need to care about the event
+        if (
+          parsed.event === 'balance_update' &&
+          Number(parsedData.value.balance_change) > 0
+        ) {
           setPendingDeposit(parsedData);
           pendingDepositRef.current = parsedData;
 
@@ -139,17 +139,6 @@ export default function Deposit() {
     }
   }, [publicDogeKey]);
 
-  const handleUpdateAccount = async (e) => {
-    e.preventDefault();
-    await updateWallet({
-      displayName: updatedDisplayName,
-      publicAddress: publicDogeKey
-    });
-
-    dispatch(updateAccount({ displayName: updatedDisplayName }));
-    setIsEditingDisplayName(false);
-  };
-
   return (
     <div className="deposit">
       <div>
@@ -173,53 +162,7 @@ export default function Deposit() {
           </a>{' '}
           to send test balance
         </p>
-        <div style={{ margin: '10px 0' }}>
-          {!loading && (!account.displayName || isEditingDisplayName) ? (
-            <form onSubmit={handleUpdateAccount}>
-              <div className="input-wrapper">
-                <label htmlFor="display-name">Display name</label>
-                <input
-                  type="text"
-                  id="display-name"
-                  defaultValue={account.displayName}
-                  onChange={(e) => setUpdatedDisplayName(e.target.value)}
-                />
-                <div className="btn-wrapper">
-                  <button
-                    style={{ color: 'var(--main-font-color)' }}
-                    type="button"
-                    className="btn"
-                    onClick={() => {
-                      setIsEditingDisplayName(false);
-                      setUpdatedDisplayName(account.displayName);
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    style={{ background: 'var(--primary)', color: '#fff' }}
-                    className="btn"
-                  >
-                    Update name
-                  </button>
-                </div>
-              </div>
-            </form>
-          ) : (
-            <h2 style={{ fontSize: '1rem', fontWeight: '400', margin: 0 }}>
-              Display name:{' '}
-              <strong style={{ fontWeight: 600 }}>{account.displayName}</strong>
-              <button
-                style={{ padding: 0, marginLeft: 10 }}
-                className="btn"
-                onClick={() => setIsEditingDisplayName(true)}
-              >
-                <EditSvg />
-              </button>
-            </h2>
-          )}
-        </div>
+        <DisplayName loading={loading} />
         <div style={{ margin: '20px 0' }}>
           <label style={{ display: 'inline-flex', alignItems: 'center' }}>
             <span style={{ marginRight: 10 }}>Dark mode</span>
@@ -240,19 +183,11 @@ export default function Deposit() {
             </span>
           </p>
         </div>
-
         {pendingDeposit && (
           <div
-            style={{
-              background: depositConfirmed
-                ? 'var(--success-darker)'
-                : 'var(--warning)',
-              color: depositConfirmed ? '#fff' : '#000',
-              padding: 10,
-              borderRadius: 4,
-              marginTop: 20,
-              textAlign: 'center'
-            }}
+            className={
+              depositConfirmed ? 'deposit-confirmed' : 'deposit-pending'
+            }
           >
             <h3>
               {depositConfirmed
