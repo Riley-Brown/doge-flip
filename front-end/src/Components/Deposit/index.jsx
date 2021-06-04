@@ -178,6 +178,7 @@ export default function Deposit() {
                 />
                 <div className="btn-wrapper">
                   <button
+                    style={{ color: 'var(--main-font-color)' }}
                     type="button"
                     className="btn"
                     onClick={() => {
