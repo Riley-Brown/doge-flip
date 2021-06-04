@@ -75,8 +75,16 @@ export default function Deposit() {
       }, 120000);
 
       socket.onmessage = async (e) => {
-        const parsed = JSON.parse(e.data);
-        const parsedData = JSON.parse(parsed.data || '{}');
+        const parseData = (data) => {
+          if (!data) return {};
+          if (typeof data === 'object') return data;
+          if (typeof data === 'string') return JSON.parse(data);
+
+          return {};
+        };
+
+        const parsed = parseData(e.data);
+        const parsedData = parseData(parsed.data);
 
         if (parsed.event === 'pusher:connection_established') {
           socket.send(
@@ -114,7 +122,7 @@ export default function Deposit() {
             setDepositConfirmed(false);
           }, 5000);
 
-          const syncedWallet = await syncWalletData(publicDogeKey);
+          const syncedWallet = await syncWalletData();
 
           dispatch(setAccount(syncedWallet.data));
 
