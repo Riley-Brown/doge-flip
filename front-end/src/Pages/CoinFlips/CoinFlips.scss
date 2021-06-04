@@ -16,6 +16,7 @@
   .much-style {
     display: flex;
     align-items: center;
+    color: var(--main-font-color);
     @media (max-width: 1400px) {
       flex-direction: column;
     }
@@ -33,6 +34,10 @@
     background-color: var(--bg-primary);
     padding: 20px;
     border-radius: 4px;
+    color: var(--main-font-color);
+    svg {
+      color: var(--main-font-color);
+    }
     h1 {
       @media (max-width: 550px) {
         font-size: 1.4rem;
@@ -70,6 +75,11 @@
         margin-top: 40px;
       }
     }
+  }
+  .coin-flips-wrapper {
+    margin: auto;
+    margin-top: 50px;
+    max-width: 900px;
   }
   .coin-flip {
     display: flex;

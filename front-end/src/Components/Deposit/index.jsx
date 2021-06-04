@@ -10,6 +10,10 @@ import { useDispatch } from 'react-redux';
 import { setAccount, updateAccount } from 'Actions/account';
 import { useTypedSelector } from 'Reducers';
 
+import Switch from 'react-switch';
+
+const isDarkMode = JSON.parse(localStorage.getItem('darkMode'));
+
 export default function Deposit() {
   const [publicDogeKey, setPublicDogeKey] = useState('');
   const [pendingDeposit, setPendingDeposit] = useState();
@@ -23,6 +27,18 @@ export default function Deposit() {
 
   const balance = useTypedSelector((state) => state.account.balance);
   const account = useTypedSelector((state) => state.account);
+
+  const [darkMode, setDarkMode] = useState(isDarkMode);
+
+  useEffect(() => {
+    if (darkMode) {
+      localStorage.setItem('darkMode', true);
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      localStorage.setItem('darkMode', false);
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  }, [darkMode]);
 
   const [isEditingDisplayName, setIsEditingDisplayName] = useState(false);
   const [updatedDisplayName, setUpdatedDisplayName] = useState('');
@@ -140,6 +156,7 @@ export default function Deposit() {
         <p style={{ marginBottom: 40 }}>
           Use the{' '}
           <a
+            style={{ color: 'var(--text-primary)' }}
             href="https://doge-faucet-testnet.ggcorp.fr/"
             target="_blank"
             rel="noopener"
@@ -193,6 +210,16 @@ export default function Deposit() {
               </button>
             </h2>
           )}
+        </div>
+        <div style={{ margin: '20px 0' }}>
+          <label style={{ display: 'flex', alignItems: 'center' }}>
+            <span style={{ marginRight: 10 }}>Dark mode</span>
+            <Switch
+              onChange={() => setDarkMode(!darkMode)}
+              checked={darkMode}
+              onColor={'#2663f2'}
+            />
+          </label>
         </div>
         <div>
           <p style={{ margin: 0 }}>
