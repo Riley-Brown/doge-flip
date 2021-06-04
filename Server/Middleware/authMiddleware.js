@@ -17,7 +17,6 @@ const handleVerifyToken = (token) => {
 
 export const setUserCookie = async (req, res, next) => {
   const token = req.cookies?.userToken;
-  console.log({ token });
 
   try {
     if (!token) {
