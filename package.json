@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "server:dev": "cross-env NODE_ENV=development nodemon --require dotenv/config --experimental-specifier-resolution=node Server/index",
+    "server:dev": "cross-env NODE_ENV=development nodemon --ignore './node_modules' --require dotenv/config --experimental-specifier-resolution=node Server/index",
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev \"",
     "build:front-end": "npm --prefix front-end run build",
     "start": "node --experimental-specifier-resolution=node Server/index.js",
