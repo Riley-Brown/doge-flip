@@ -24,7 +24,7 @@ button:disabled {
   pointer-events: none;
 }
 
-input {
+input:not([type='checkbox']) {
   appearance: none;
   border: 1px solid var(--secondary);
   border-radius: 4px;
