@@ -1,6 +1,6 @@
 Dogecoin coin flip
 
-Live demo https://competent-shannon-ea4b21.netlify.app/
+Live demo https://doge-flip.riley.gg
 
 ![Demo](./demo.gif)
 
