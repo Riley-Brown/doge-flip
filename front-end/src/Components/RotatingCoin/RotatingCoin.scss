@@ -54,6 +54,7 @@
   }
 
   .coin__edge {
+    transform-style: preserve-3d;
     @for $i from 1 through $edge-faces {
       div:nth-child(#{$i}) {
         position: absolute;
