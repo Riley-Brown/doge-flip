@@ -26,7 +26,8 @@ async function handleCreateWallet(res) {
   res.cookie('userToken', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'development' ? false : true,
-    sameSite: process.env.NODE_ENV === 'development' ? 'lax' : 'None'
+    sameSite: process.env.NODE_ENV === 'development' ? 'lax' : 'None',
+    maxAge: 365 * 24 * 60 * 60 * 1000
   });
 
   const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
