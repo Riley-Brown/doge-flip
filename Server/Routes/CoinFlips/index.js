@@ -1,11 +1,10 @@
 import { Router } from 'express';
+import Provable from 'provable';
+import EventEmitter from 'events';
+
 import { mongoClient, ObjectId } from '../../DB';
 
-import Provable from 'provable';
-
-import Queue from 'bull';
-
-import EventEmitter from 'events';
+import { setUserCookie } from '../../Middleware/authMiddleware';
 
 const coinFlipEvents = new EventEmitter();
 
@@ -26,10 +25,12 @@ function generateRandomNumber() {
   return { float, hash, int, bool };
 }
 
-router.post('/create', async (req, res) => {
+router.post('/create', setUserCookie, async (req, res) => {
   try {
     const timestamp = Math.floor(Date.now() / 1000);
-    const { userId, dogeAmount, side } = req.body;
+    const { dogeAmount, side } = req.body;
+
+    const { userId } = res.locals.userTokenObject;
 
     if (
       !userId ||
@@ -52,8 +53,6 @@ router.post('/create', async (req, res) => {
     const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
 
     const userWallet = await walletsCollection.findOne({ _id: userId });
-
-    console.log(userWallet);
 
     if (!userWallet) {
       return res
@@ -83,8 +82,6 @@ router.post('/create', async (req, res) => {
       { returnDocument: 'after' }
     );
 
-    console.log(updatedWallet);
-
     await activeCoinFlipsCollection.insertOne(coinFlipData);
 
     coinFlipEvents.emit('coinFlipCreated', coinFlipData);
@@ -113,8 +110,9 @@ router.get('/active', async (req, res) => {
   }
 });
 
-router.post('/join', async (req, res) => {
-  const { coinFlipId, userId } = req.body;
+router.post('/join', setUserCookie, async (req, res) => {
+  const { coinFlipId } = req.body;
+  const { userId } = res.locals.userTokenObject;
 
   if (
     !coinFlipId ||
@@ -170,8 +168,6 @@ router.post('/join', async (req, res) => {
     { returnDocument: 'after' }
   );
 
-  console.log(updatedWallet);
-
   const joinDate = Math.floor(Date.now() / 1000);
   const side = activeCoinFlip.creatorSide === 'heads' ? 'tails' : 'heads';
 
@@ -221,13 +217,6 @@ router.post('/join', async (req, res) => {
         winnerId = coinFlipData.joinedByUserId;
         winnerDisplayName = coinFlipData.joinedByDisplayName;
       }
-
-      console.log('handle winner', {
-        activeCoinFlip,
-        coinFlipData,
-        winnerId,
-        winningSide
-      });
 
       const finishedCoinFlip = await activeCoinFlipsCollection.findOneAndUpdate(
         { _id: ObjectId(coinFlipId) },
