@@ -11,23 +11,22 @@ import { useTypedSelector } from 'Reducers';
 import Switch from 'react-switch';
 import DisplayName from './DisplayName';
 
+import { useToasts } from 'react-toast-notifications';
+
 const isDarkMode = JSON.parse(localStorage.getItem('darkMode'));
 
 export default function Deposit() {
   const [publicDogeKey, setPublicDogeKey] = useState('');
-  const [pendingDeposit, setPendingDeposit] = useState();
-  const [depositConfirmed, setDepositConfirmed] = useState(false);
 
+  const [darkMode, setDarkMode] = useState(isDarkMode);
   const [loading, setLoading] = useState(true);
 
   const pendingDepositRef = useRef();
-
   const dispatch = useDispatch();
+  const { addToast, removeToast } = useToasts();
 
   const balance = useTypedSelector((state) => state.account.balance);
   const account = useTypedSelector((state) => state.account);
-
-  const [darkMode, setDarkMode] = useState(isDarkMode);
 
   useEffect(() => {
     if (darkMode) {
@@ -57,7 +56,7 @@ export default function Deposit() {
 
       // todo: make dynamic for doge live net depending on env
       const socket = new WebSocket(
-        'wss://slanger1.chain.so/app/e9f5cc20074501ca7395?protocol=7&client=js&version=2.1.6&flash=false'
+        'wss://slanger1.chain.so/app/e9f5cc20074501ca7395'
       );
 
       // Ping ws every 2 minutes to keep alive
@@ -99,8 +98,20 @@ export default function Deposit() {
           parsed.event === 'balance_update' &&
           Number(parsedData.value.balance_change) > 0
         ) {
-          setPendingDeposit(parsedData);
           pendingDepositRef.current = parsedData;
+
+          addToast(
+            <div style={{ color: '#222' }}>
+              <h2 style={{ marginTop: 0 }}>Pending transaction</h2>
+              <p>
+                Amount: <strong>{parsedData.value.value_received}</strong>
+              </p>
+              <p>
+                <p>Waiting to be confirmed on doge blockchain</p>
+              </p>
+            </div>,
+            { appearance: 'warning', id: parsedData.value.tx.txid }
+          );
 
           socket.send(
             JSON.stringify({
@@ -114,17 +125,21 @@ export default function Deposit() {
         }
 
         if (parsed.event === 'confirm_tx') {
-          setDepositConfirmed(true);
-
-          setTimeout(() => {
-            pendingDepositRef.current = undefined;
-            setPendingDeposit(false);
-            setDepositConfirmed(false);
-          }, 5000);
-
           const syncedWallet = await syncWalletData();
 
           dispatch(setAccount(syncedWallet.data));
+
+          removeToast(pendingDepositRef.current.value.tx.txid);
+
+          addToast(
+            <div style={{ color: '#222' }}>
+              <h2 style={{ marginTop: 0 }}>Transaction confirmed!</h2>
+              <p>
+                Updated balance: <strong>{syncedWallet.data.balance}</strong>
+              </p>
+            </div>,
+            { appearance: 'success' }
+          );
 
           socket.send(
             JSON.stringify({
@@ -134,6 +149,8 @@ export default function Deposit() {
               }
             })
           );
+
+          pendingDepositRef.current = undefined;
         }
       };
     }
@@ -183,23 +200,6 @@ export default function Deposit() {
             </span>
           </p>
         </div>
-        {pendingDeposit && (
-          <div
-            className={
-              depositConfirmed ? 'deposit-confirmed' : 'deposit-pending'
-            }
-          >
-            <h3>
-              {depositConfirmed
-                ? 'Transaction confirmed! Balance has been updated'
-                : 'Pending transaction'}
-            </h3>
-            <h3>Amount: {pendingDeposit.value?.value_received}</h3>
-            {!depositConfirmed && (
-              <p>Waiting to be confirmed on doge blockchain</p>
-            )}
-          </div>
-        )}
       </div>
       <QRCode
         className="qr-code"
