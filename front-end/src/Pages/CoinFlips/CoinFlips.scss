@@ -35,20 +35,6 @@
     padding: 20px;
     border-radius: 4px;
     color: var(--main-font-color);
-    .deposit-pending,
-    .deposit-confirmed {
-      padding: 10px;
-      border-radius: 4px;
-      margin-top: 20px;
-      text-align: center;
-    }
-    .deposit-pending {
-      background: var(--warning);
-      color: #222;
-    }
-    .deposit-confirmed {
-      background: var(--success-darker);
-    }
     svg {
       color: var(--main-font-color);
     }
