@@ -62,7 +62,6 @@ export default function CreateFlip({
       setLoading(true);
       const create = await createCoinFlip({
         dogeAmount: Number(data.dogeAmount),
-        userId: account.userId,
         side
       });
 

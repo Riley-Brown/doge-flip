@@ -34,7 +34,6 @@ export default function JoinFlip({ coinFlip }: { coinFlip: CoinFlipTypes }) {
     }
 
     const join = await joinCoinFlip({
-      userId: account.userId,
       coinFlipId: coinFlip._id
     });
 

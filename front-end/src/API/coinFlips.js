@@ -6,22 +6,24 @@ export async function getActiveCoinFlips() {
   return json;
 }
 
-export async function createCoinFlip({ dogeAmount, userId, side }) {
+export async function createCoinFlip({ dogeAmount, side }) {
   const res = await fetch(`${API_ROOT}/coin-flips/create`, {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ dogeAmount, userId, side })
+    body: JSON.stringify({ dogeAmount, side })
   });
 
   const json = await res.json();
   return json;
 }
 
-export async function joinCoinFlip({ userId, coinFlipId }) {
+export async function joinCoinFlip({ coinFlipId }) {
   const res = await fetch(`${API_ROOT}/coin-flips/join`, {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId, coinFlipId })
+    body: JSON.stringify({ coinFlipId })
   });
 
   const json = await res.json();
