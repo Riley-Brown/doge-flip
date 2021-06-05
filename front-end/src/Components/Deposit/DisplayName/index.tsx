@@ -46,17 +46,19 @@ export default function DisplayName({ loading }: { loading: boolean }) {
               onChange={(e) => setUpdatedDisplayName(e.target.value)}
             />
             <div className="btn-wrapper">
-              <button
-                style={{ color: 'var(--main-font-color)' }}
-                type="button"
-                className="btn"
-                onClick={() => {
-                  setIsEditingDisplayName(false);
-                  setUpdatedDisplayName(displayName);
-                }}
-              >
-                Cancel
-              </button>
+              {displayName && (
+                <button
+                  style={{ color: 'var(--main-font-color)' }}
+                  type="button"
+                  className="btn"
+                  onClick={() => {
+                    setIsEditingDisplayName(false);
+                    setUpdatedDisplayName(displayName);
+                  }}
+                >
+                  Cancel
+                </button>
+              )}
               <button
                 type="submit"
                 style={{ background: 'var(--primary)', color: '#fff' }}
