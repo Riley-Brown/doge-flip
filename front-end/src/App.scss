@@ -15,6 +15,16 @@
   cursor: pointer;
 }
 
+.btn.primary {
+  background-color: var(--primary);
+  color: #fff;
+}
+
+.btn.secondary {
+  background-color: var(--secondary);
+  color: #fff;
+}
+
 button {
   appearance: none;
 }
@@ -62,4 +72,21 @@ input.is-invalid {
 input,
 textarea {
   font-size: 16px;
+}
+
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  text-align: start;
+  margin-bottom: 20px;
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+  label {
+    margin-bottom: 5px;
+  }
+  input {
+    padding: 10px;
+  }
 }
