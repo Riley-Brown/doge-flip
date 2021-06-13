@@ -38,3 +38,37 @@ export async function syncWalletData() {
   const json = await res.json();
   return json;
 }
+
+export async function recoverWallet({ publicAddress, recoveryKey }) {
+  const res = await fetch(`${API_ROOT}/wallet/recover`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ publicAddress, recoveryKey })
+  });
+
+  const json = await res.json();
+  return json;
+}
+
+export async function getWalletRecoveryKey() {
+  const res = await fetch(`${API_ROOT}/wallet/recovery-key`, {
+    method: 'GET',
+    credentials: 'include'
+  });
+
+  const json = await res.json();
+  return json;
+}
+
+export async function resetWalletRecoveryKey() {
+  const res = await fetch(`${API_ROOT}/wallet/reset-recovery-key`, {
+    method: 'POST',
+    credentials: 'include'
+  });
+
+  const json = await res.json();
+  return json;
+}
