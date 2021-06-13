@@ -13,6 +13,9 @@ import DisplayName from './DisplayName';
 
 import { useToasts } from 'react-toast-notifications';
 
+import RecoverAccount from './RecoverAccount';
+import SecureAccount from './SecureAccount';
+
 const isDarkMode = JSON.parse(localStorage.getItem('darkMode'));
 
 export default function Deposit() {
@@ -163,6 +166,10 @@ export default function Deposit() {
         <p>
           Deposits can be made to <br /> {publicDogeKey}
         </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <SecureAccount />
+          <RecoverAccount />
+        </div>
         <p>
           Current system using DOGE test net, DO NOT send real doge, you will
           lose it forever
