@@ -119,15 +119,20 @@ export default function RecoverAccount() {
                 </small>
               )}
             </div>
-            <div style={{ marginTop: '20px' }}>
+            <div style={{ marginTop: '40px' }}>
               <button
+                style={{ marginRight: '20px', minWidth: '150px' }}
                 onClick={() => setShow(false)}
                 className="btn"
                 type="button"
               >
                 Cancel
               </button>
-              <button className="btn primary" type="submit">
+              <button
+                style={{ marginLeft: '20px', minWidth: '150px' }}
+                className="btn primary"
+                type="submit"
+              >
                 Submit
               </button>
             </div>
