@@ -77,6 +77,17 @@ export default function RecoverAccount() {
           onCancel={() => handleResetState()}
           input={true}
         >
+          <div style={{ textAlign: 'left' }}>
+            <p>
+              Recover an existing account using that account's public address
+              and recovery key.
+            </p>
+            <p>
+              This will <strong>overwrite</strong> the current account on this
+              browser if successful.
+            </p>
+          </div>
+
           <form onSubmit={onSubmit}>
             <div className="input-wrapper">
               <label htmlFor="public-address">Public address</label>
