@@ -15,7 +15,6 @@ import Portal from 'Components/Portal';
 
 export default function SecureAccount() {
   const [show, setShow] = useState(false);
-  const [type, setType] = useState<SweetAlertType>('default');
 
   const [showRecoveryKey, setShowRecoveryKey] = useState(false);
   const [recoveryKey, setRecoveryKey] = useState('');
@@ -28,18 +27,9 @@ export default function SecureAccount() {
     }
   }, [show, recoveryKey]);
 
-  const [title, setTitle] = useState('Secure account');
-
   const publicAddress = useTypedSelector(
     (state) => state.account.publicAddress
   );
-
-  const handleResetState = () => {
-    setType('default');
-    setShow(false);
-
-    setTitle('Recover account');
-  };
 
   return (
     <>
@@ -54,11 +44,11 @@ export default function SecureAccount() {
         <SweetAlert
           showConfirm={false}
           showCancel={false}
-          type={type}
-          title={title}
+          type={'default'}
+          title={'Secure account'}
           onConfirm={() => null}
           show={show}
-          onCancel={() => handleResetState()}
+          onCancel={() => setShow(false)}
           input={true}
         >
           <div style={{ textAlign: 'left' }}>
