@@ -15,13 +15,8 @@ import { createToken } from '../../Auth';
 
 const router = Router();
 
-async function handleCreateWallet(res) {
-  const dogeVersions = coinInfo('DOGE-TEST').versions;
-  const key = new CoinKey.createRandom(dogeVersions);
-
-  const userId = uuid();
-
-  const token = createToken({ userId, publicAddress: key.publicAddress });
+function handleCreateUserToken({ userId, publicAddress, res }) {
+  const token = createToken({ userId, publicAddress });
 
   res.cookie('userToken', token, {
     httpOnly: true,
@@ -29,6 +24,15 @@ async function handleCreateWallet(res) {
     sameSite: process.env.NODE_ENV === 'development' ? 'lax' : 'None',
     maxAge: 365 * 24 * 60 * 60 * 1000
   });
+}
+
+async function handleCreateWallet(res) {
+  const dogeVersions = coinInfo('DOGE-TEST').versions;
+  const key = new CoinKey.createRandom(dogeVersions);
+
+  const userId = uuid();
+
+  handleCreateUserToken({ userId, publicAddress, res });
 
   const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
 
@@ -165,6 +169,121 @@ router.post('/sync-wallet', async (req, res) => {
       publicAddress: wallet.publicAddress,
       userId: wallet.userId
     }
+  });
+});
+
+router.post('/recover', async (req, res) => {
+  const { publicAddress, recoveryKey } = req.body;
+
+  if (
+    !publicAddress ||
+    !recoveryKey ||
+    typeof publicAddress !== 'string' ||
+    typeof recoveryKey !== 'string'
+  ) {
+    return res.status(400).json({ type: 'error', message: 'Invalid params' });
+  }
+
+  const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
+  const wallet = await walletsCollection.findOne({ publicAddress });
+
+  if (!wallet) {
+    return res.status(400).json({
+      type: 'error',
+      message: 'Invalid public address/recovery key combination'
+    });
+  }
+
+  if (wallet.recoveryKey === recoveryKey) {
+    handleCreateUserToken({
+      userId: wallet.userId,
+      publicAddress: wallet.publicAddress,
+      res
+    });
+
+    return res.send({
+      type: 'ok',
+      message: 'Account successfully recovered',
+      data: {
+        balance: wallet.balance,
+        displayName: wallet.displayName,
+        network: wallet.network,
+        publicAddress: wallet.publicAddress,
+        userId: wallet.userId
+      }
+    });
+  }
+
+  return res.status(400).json({
+    type: 'error',
+    message: 'Invalid public address/recovery key combination'
+  });
+});
+
+router.get('/recovery-key', async (req, res) => {
+  const { publicAddress } = res.locals.userTokenObject;
+
+  if (!publicAddress || typeof publicAddress !== 'string') {
+    return res.status(400).json({ type: 'error', message: 'Invalid params' });
+  }
+
+  const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
+  const wallet = await walletsCollection.findOne({ publicAddress });
+
+  if (!wallet) {
+    return res.status(400).json({
+      type: 'error',
+      message: 'Wallet does not exist'
+    });
+  }
+
+  if (!wallet.recoveryKey) {
+    const recoveryKey = uuid();
+    await walletsCollection.findOneAndUpdate(
+      { publicAddress },
+      { $set: { recoveryKey } },
+      { returnDocument: 'after' }
+    );
+
+    return res.json({
+      type: 'ok',
+      data: { recoveryKey }
+    });
+  } else {
+    return res.json({
+      type: 'ok',
+      data: { recoveryKey: wallet.recoveryKey }
+    });
+  }
+});
+
+router.post('/reset-recovery-key', async (req, res) => {
+  const { publicAddress } = res.locals.userTokenObject;
+
+  if (!publicAddress || typeof publicAddress !== 'string') {
+    return res.status(400).json({ type: 'error', message: 'Invalid params' });
+  }
+
+  const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
+  const wallet = await walletsCollection.findOne({ publicAddress });
+
+  if (!wallet) {
+    return res.status(400).json({
+      type: 'error',
+      message: 'Wallet does not exist'
+    });
+  }
+
+  const recoveryKey = uuid();
+  await walletsCollection.findOneAndUpdate(
+    { publicAddress },
+    { $set: { recoveryKey } },
+    { returnDocument: 'after' }
+  );
+
+  return res.json({
+    type: 'ok',
+    data: { recoveryKey }
   });
 });
 
