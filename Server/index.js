@@ -25,7 +25,7 @@ server.use(morgan('dev'));
 server.use(cookieParser());
 
 server.use('/wallet', setUserCookie, Wallet);
-server.use('/transactions', Transactions);
+server.use('/transactions', setUserCookie, Transactions);
 server.use('/coin-flips', CoinFlips);
 
 const port = process.env.PORT || 9999;
