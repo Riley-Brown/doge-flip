@@ -15,6 +15,7 @@ import { useToasts } from 'react-toast-notifications';
 
 import RecoverAccount from './RecoverAccount';
 import SecureAccount from './SecureAccount';
+import Withdraw from './Withdraw';
 
 const isDarkMode = JSON.parse(localStorage.getItem('darkMode'));
 
@@ -204,6 +205,9 @@ export default function Deposit() {
               <strong style={{ fontWeight: 600 }}>
                 {balance.toLocaleString()}
               </strong>
+            </span>
+            <span>
+              <Withdraw />
             </span>
           </p>
         </div>
