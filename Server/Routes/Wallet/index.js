@@ -32,7 +32,7 @@ async function handleCreateWallet(res) {
 
   const userId = uuid();
 
-  handleCreateUserToken({ userId, publicAddress, res });
+  handleCreateUserToken({ userId, publicAddress: key.publicAddress, res });
 
   const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
 
