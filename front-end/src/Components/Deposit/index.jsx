@@ -52,7 +52,7 @@ export default function Deposit() {
 
   useEffect(() => {
     if (publicDogeKey) {
-      syncWalletData(publicDogeKey).then((res) => {
+      syncWalletData().then((res) => {
         if (res.data.balance !== account.balance) {
           dispatch(updateAccount({ balance: res.data.balance }));
         }
