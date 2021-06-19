@@ -95,7 +95,6 @@ export default function RecoverAccount() {
                 })}
                 id="public-address"
                 type="text"
-                name="public-address"
                 autoComplete="new-password"
               />
               {errors.publicAddress && (
