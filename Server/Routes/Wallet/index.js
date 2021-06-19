@@ -124,11 +124,32 @@ router.post('/sync-wallet', async (req, res) => {
     network: DOGE_NETWORK
   });
 
+  const pendingDeposits = [];
+
   if (unspentTx.status === 'success' && unspentTx.data.txs.length > 0) {
     let totalUnspentValue = 0;
-    unspentTx.data.txs.forEach(
-      (element) => (totalUnspentValue += Number(element.value))
-    );
+    unspentTx.data.txs.forEach((element) => {
+      // prob would want to make sure there's more than 1 confirmation using real net
+      if (element.confirmations > 0) {
+        totalUnspentValue += Number(element.value);
+      } else {
+        pendingDeposits.push({ value: element.value, txId: element.txid });
+      }
+    });
+
+    if (totalUnspentValue === 0) {
+      return res.send({
+        type: 'ok',
+        data: {
+          balance: wallet.balance,
+          displayName: wallet.displayName,
+          network: wallet.network,
+          pendingDeposits,
+          publicAddress: wallet.publicAddress,
+          userId: wallet.userId
+        }
+      });
+    }
 
     const sendToMainWallet = await handleSendDogeCoin({
       dogeCoinsToSend: totalUnspentValue,
@@ -153,6 +174,7 @@ router.post('/sync-wallet', async (req, res) => {
           balance: updateWallet.value.balance,
           displayName: updateWallet.value.displayName,
           network: updateWallet.value.network,
+          pendingDeposits,
           publicAddress: updateWallet.value.publicAddress,
           userId: updateWallet.value.userId
         }
@@ -166,6 +188,7 @@ router.post('/sync-wallet', async (req, res) => {
       balance: wallet.balance,
       displayName: wallet.displayName,
       network: wallet.network,
+      pendingDeposits,
       publicAddress: wallet.publicAddress,
       userId: wallet.userId
     }
