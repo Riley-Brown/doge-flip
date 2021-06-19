@@ -25,7 +25,6 @@ export default function Deposit() {
   const [darkMode, setDarkMode] = useState(isDarkMode);
   const [loading, setLoading] = useState(true);
 
-  const pendingDepositRef = useRef();
   const dispatch = useDispatch();
   const { addToast, removeToast } = useToasts();
 
@@ -102,8 +101,6 @@ export default function Deposit() {
           parsed.event === 'balance_update' &&
           Number(parsedData.value.balance_change) > 0
         ) {
-          pendingDepositRef.current = parsedData;
-
           addToast(
             <div style={{ color: '#222' }}>
               <h2 style={{ marginTop: 0 }}>Pending transaction</h2>
@@ -133,7 +130,9 @@ export default function Deposit() {
 
           dispatch(setAccount(syncedWallet.data));
 
-          removeToast(pendingDepositRef.current.value.tx.txid);
+          const txId = parsedData.value.txid;
+
+          removeToast(txId);
 
           addToast(
             <div style={{ color: '#222' }}>
@@ -149,12 +148,10 @@ export default function Deposit() {
             JSON.stringify({
               event: 'pusher:unsubscribe',
               data: {
-                channel: `confirm_tx_dogetest_${pendingDepositRef.current.value.tx.txid}`
+                channel: `confirm_tx_dogetest_${txId}`
               }
             })
           );
-
-          pendingDepositRef.current = undefined;
         }
       };
     }
