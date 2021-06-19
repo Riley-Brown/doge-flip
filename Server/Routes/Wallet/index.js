@@ -41,7 +41,7 @@ async function handleCreateWallet(res) {
     publicAddress: key.publicAddress,
     privateWif: key.privateWif,
     privateHex: key.privateKey.toString('hex'),
-    balance: 500,
+    balance: 50,
     network: DOGE_NETWORK,
     userId
   });
