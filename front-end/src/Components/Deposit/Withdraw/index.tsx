@@ -82,54 +82,48 @@ export default function Withdraw() {
           onCancel={() => handleResetState()}
           input={true}
         >
-          <form onSubmit={onSubmit}>
-            <div className="input-wrapper">
-              <label htmlFor="public-address">Address to send to</label>
-              <input
-                {...register('publicAddress', {
-                  required: 'Public address is required'
-                })}
-                id="public-address"
-                type="text"
-              />
-              {errors.publicAddress && (
-                <small className="text-danger">
-                  {errors.publicAddress.message}
-                </small>
-              )}
-            </div>
-            <div className="input-wrapper">
-              <label htmlFor="doge-amount">Doge amount</label>
-              <input
-                {...register('dogeAmount', {
-                  required: 'Doge amount is required'
-                })}
-                id="doge-amount"
-                type="number"
-              />
-              {errors.dogeAmount && (
-                <small className="text-danger">
-                  {errors.dogeAmount.message}
-                </small>
-              )}
-            </div>
-            <div style={{ marginTop: '40px' }}>
-              <button
-                style={{ marginRight: '20px', minWidth: '150px' }}
-                onClick={() => setShow(false)}
-                className="btn"
-                type="button"
-              >
-                Cancel
-              </button>
-              {type === 'success' ? (
+          {type !== 'success' && (
+            <form onSubmit={onSubmit}>
+              <div className="input-wrapper">
+                <label htmlFor="public-address">Address to send to</label>
+                <input
+                  {...register('publicAddress', {
+                    required: 'Public address is required'
+                  })}
+                  id="public-address"
+                  type="text"
+                />
+                {errors.publicAddress && (
+                  <small className="text-danger">
+                    {errors.publicAddress.message}
+                  </small>
+                )}
+              </div>
+              <div className="input-wrapper">
+                <label htmlFor="doge-amount">Doge amount</label>
+                <input
+                  {...register('dogeAmount', {
+                    required: 'Doge amount is required'
+                  })}
+                  id="doge-amount"
+                  type="number"
+                />
+                {errors.dogeAmount && (
+                  <small className="text-danger">
+                    {errors.dogeAmount.message}
+                  </small>
+                )}
+              </div>
+              <div style={{ marginTop: '40px' }}>
                 <button
-                  className="btn primary"
-                  onClick={() => handleResetState()}
+                  style={{ marginRight: '20px', minWidth: '150px' }}
+                  onClick={() => setShow(false)}
+                  className="btn"
+                  type="button"
                 >
-                  Continue
+                  Cancel
                 </button>
-              ) : (
+
                 <SpinnerButton
                   loading={loading}
                   style={{
@@ -141,9 +135,28 @@ export default function Withdraw() {
                 >
                   Submit
                 </SpinnerButton>
-              )}
+              </div>
+            </form>
+          )}
+          {type === 'success' && (
+            <div style={{ marginTop: '40px' }}>
+              <button
+                style={{ marginRight: '20px', minWidth: '150px' }}
+                onClick={() => handleResetState()}
+                className="btn"
+                type="button"
+              >
+                Close
+              </button>
+              <button
+                style={{ marginRight: '20px', minWidth: '150px' }}
+                className="btn primary"
+                onClick={() => handleResetState()}
+              >
+                Continue
+              </button>
             </div>
-          </form>
+          )}
         </SweetAlert>
       </Portal>
     </>
