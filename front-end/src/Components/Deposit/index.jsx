@@ -165,7 +165,8 @@ export default function Deposit() {
             <div style={{ color: '#222' }}>
               <h2 style={{ marginTop: 0 }}>Transaction confirmed!</h2>
               <p>
-                Updated balance: <strong>{syncedWallet.data.balance}</strong>
+                Updated balance:{' '}
+                <strong>{syncedWallet.data.balance.toLocaleString()}</strong>
               </p>
             </div>,
             { appearance: 'success' }
