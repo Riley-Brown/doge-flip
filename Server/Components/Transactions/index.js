@@ -38,11 +38,16 @@ export async function handleSendDogeCoin({
     let totalSatoshisAvailable = 0;
     let totalInputs = 0;
 
+    const txIdMap = {};
+
     unspentTx.data.txs.forEach((element) => {
       totalSatoshisAvailable += toSatoshis(element.value);
       totalInputs++;
 
-      tx.addInput(element.txid, element.output_no);
+      if (!txIdMap[element.txid]) {
+        txIdMap[element.txid] = true;
+        tx.addInput(element.txid, element.output_no);
+      }
     });
 
     const fee = toSatoshis(1);
