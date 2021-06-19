@@ -81,7 +81,7 @@ router.post('/withdraw', async (req, res) => {
       sourceAddress: MAIN_WALLET_PUBLIC_KEY
     });
 
-    if (send.status === 'success') {
+    if (send?.status === 'success') {
       const updatedUser = await walletsCollection.findOneAndUpdate(
         { _id: userId },
         { $inc: { balance: -dogeCoinsToSend } },
