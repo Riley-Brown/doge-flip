@@ -52,8 +52,6 @@ export default function RecoverAccount() {
     clearErrors();
     setTitle('Recover account');
     setLoading(false);
-    setValue('publicAddress', '');
-    setValue('recoveryKey', '');
   };
 
   return (
@@ -97,6 +95,8 @@ export default function RecoverAccount() {
                 })}
                 id="public-address"
                 type="text"
+                name="public-address"
+                autoComplete="new-password"
               />
               {errors.publicAddress && (
                 <small className="text-danger">
@@ -111,7 +111,8 @@ export default function RecoverAccount() {
                   required: 'Recovery key is required'
                 })}
                 id="recovery-key"
-                type="text"
+                type="password"
+                autoComplete="new-password"
               />
               {errors.recoveryKey && (
                 <small className="text-danger">
@@ -122,7 +123,11 @@ export default function RecoverAccount() {
             <div style={{ marginTop: '40px' }}>
               <button
                 style={{ marginRight: '20px', minWidth: '150px' }}
-                onClick={() => setShow(false)}
+                onClick={() => {
+                  handleResetState();
+                  setValue('publicAddress', '');
+                  setValue('recoveryKey', '');
+                }}
                 className="btn"
                 type="button"
               >
