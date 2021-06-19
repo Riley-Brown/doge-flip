@@ -7,7 +7,7 @@ import Wallet from './Routes/Wallet';
 import Transactions from './Routes/Transactions';
 import CoinFlips from './Routes/CoinFlips';
 
-import { setUserCookie } from './Middleware/authMiddleware';
+import { requireUserAuth } from './Middleware/authMiddleware';
 
 const corsOptions = {
   credentials: true,
@@ -24,8 +24,8 @@ server.use(cors(corsOptions));
 server.use(morgan('dev'));
 server.use(cookieParser());
 
-server.use('/wallet', setUserCookie, Wallet);
-server.use('/transactions', setUserCookie, Transactions);
+server.use('/wallet', requireUserAuth, Wallet);
+server.use('/transactions', requireUserAuth, Transactions);
 server.use('/coin-flips', CoinFlips);
 
 const port = process.env.PORT || 9999;

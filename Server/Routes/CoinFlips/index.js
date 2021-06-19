@@ -4,7 +4,7 @@ import EventEmitter from 'events';
 
 import { mongoClient, ObjectId } from '../../DB';
 
-import { setUserCookie } from '../../Middleware/authMiddleware';
+import { requireUserAuth } from '../../Middleware/authMiddleware';
 
 const coinFlipEvents = new EventEmitter();
 
@@ -25,7 +25,7 @@ function generateRandomNumber() {
   return { float, hash, int, bool };
 }
 
-router.post('/create', setUserCookie, async (req, res) => {
+router.post('/create', requireUserAuth, async (req, res) => {
   try {
     const timestamp = Math.floor(Date.now() / 1000);
     const { dogeAmount, side } = req.body;
@@ -110,7 +110,7 @@ router.get('/active', async (req, res) => {
   }
 });
 
-router.post('/join', setUserCookie, async (req, res) => {
+router.post('/join', requireUserAuth, async (req, res) => {
   const { coinFlipId } = req.body;
   const { userId } = res.locals.userTokenObject;
 
