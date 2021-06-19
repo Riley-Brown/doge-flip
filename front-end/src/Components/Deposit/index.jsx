@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 import { getWalletData, syncWalletData } from 'API';
 
@@ -51,16 +51,43 @@ export default function Deposit() {
 
   useEffect(() => {
     if (publicDogeKey) {
-      syncWalletData().then((res) => {
-        if (res.data.balance !== account.balance) {
-          dispatch(updateAccount({ balance: res.data.balance }));
-        }
-      });
-
       // todo: make dynamic for doge live net depending on env
       const socket = new WebSocket(
         'wss://slanger1.chain.so/app/e9f5cc20074501ca7395'
       );
+
+      syncWalletData().then((res) => {
+        if (res.data.balance !== account.balance) {
+          dispatch(updateAccount({ balance: res.data.balance }));
+        }
+
+        if (res.data.pendingDeposits.length > 0) {
+          res.data.pendingDeposits.forEach((pendingDeposit) => {
+            socket.send(
+              JSON.stringify({
+                event: 'pusher:subscribe',
+                data: {
+                  // todo: make dogetest dynamic based on env
+                  channel: `confirm_tx_dogetest_${pendingDeposit.txId}`
+                }
+              })
+            );
+
+            addToast(
+              <div style={{ color: '#222' }}>
+                <h2 style={{ marginTop: 0 }}>Pending transaction</h2>
+                <p>
+                  Amount: <strong>{pendingDeposit.value}</strong>
+                </p>
+                <p>
+                  <p>Waiting to be confirmed on doge blockchain</p>
+                </p>
+              </div>,
+              { appearance: 'warning', id: pendingDeposit.txId }
+            );
+          });
+        }
+      });
 
       // Ping ws every 2 minutes to keep alive
       setInterval(() => {
