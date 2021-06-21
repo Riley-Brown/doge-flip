@@ -76,10 +76,21 @@
       }
     }
   }
-  .coin-flips-wrapper {
-    margin: auto;
+  .coin-flips-chat-wrapper {
+    display: flex;
+    justify-content: space-between;
+    // margin: auto;
     margin-top: 50px;
-    max-width: 900px;
+  }
+  .coin-flips-wrapper {
+    // max-width: 900px;
+    width: 75%;
+    @media (max-width: 1600px) {
+      width: 65%;
+    }
+    @media (max-width: 1100px) {
+      width: 100%;
+    }
   }
   .coin-flip {
     display: flex;

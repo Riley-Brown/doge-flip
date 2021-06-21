@@ -10,6 +10,7 @@ import Deposit from 'Components/Deposit';
 
 import CreateFlip from './CreateFlip';
 import CoinFlip from './CoinFlip';
+import Chat from 'Components/Chat';
 
 export default function CoinFlips() {
   const [activeCoinFlips, setActiveCoinFlips] = useState([]);
@@ -53,34 +54,39 @@ export default function CoinFlips() {
           </div>
         </div>
       </div>
-      <div className="coin-flips-wrapper">
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            textAlign: 'center',
-            justifyContent: 'center',
-            marginBottom: 20
-          }}
-        >
-          <h2 style={{ color: 'var(--main-font-color)' }}>Active coin flips</h2>
-          <CreateFlip setActiveCoinFlips={setActiveCoinFlips} />
+      <div className="coin-flips-chat-wrapper">
+        <div className="coin-flips-wrapper">
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              textAlign: 'center',
+              justifyContent: 'center',
+              marginBottom: 20
+            }}
+          >
+            <h2 style={{ color: 'var(--main-font-color)' }}>
+              Active coin flips
+            </h2>
+            <CreateFlip setActiveCoinFlips={setActiveCoinFlips} />
+          </div>
+          {loading && <p>Loading coin flips...</p>}
+          {!loading && activeCoinFlips.length === 0 ? (
+            <p style={{ textAlign: 'center' }}>
+              There are currently 0 active coin flips. Create the first flip for
+              others to see!
+            </p>
+          ) : (
+            activeCoinFlips.map((flip) => (
+              <CoinFlip
+                key={flip._id}
+                coinFlipEvent={coinFlipsEvents[flip._id]}
+                coinFlip={flip}
+              />
+            ))
+          )}
         </div>
-        {loading && <p>Loading coin flips...</p>}
-        {!loading && activeCoinFlips.length === 0 ? (
-          <p style={{ textAlign: 'center' }}>
-            There are currently 0 active coin flips. Create the first flip for
-            others to see!
-          </p>
-        ) : (
-          activeCoinFlips.map((flip) => (
-            <CoinFlip
-              key={flip._id}
-              coinFlipEvent={coinFlipsEvents[flip._id]}
-              coinFlip={flip}
-            />
-          ))
-        )}
+        <Chat />
       </div>
     </div>
   );
