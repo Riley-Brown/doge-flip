@@ -13,6 +13,10 @@
   --text-primary: var(--primary);
 }
 
+* {
+  box-sizing: border-box;
+}
+
 html[data-theme='dark'] {
   --bg-primary: #333;
   --bg-secondary: #444;
