@@ -1,3 +1,4 @@
+import { WS_ROOT } from 'API';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { useTypedSelector } from 'Reducers';
 
@@ -26,7 +27,7 @@ export default function Chat() {
   }, [chat]);
 
   useEffect(() => {
-    socket.current = new WebSocket('ws://localhost:9999');
+    socket.current = new WebSocket(WS_ROOT);
 
     socket.current.onmessage = (message) => {
       console.log(message);
