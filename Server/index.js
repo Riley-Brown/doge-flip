@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import ws from 'ws';
 
 import Wallet from './Routes/Wallet';
 import Transactions from './Routes/Transactions';
@@ -18,18 +19,34 @@ const corsOptions = {
   ]
 };
 
-const server = express();
-server.use(express.json());
-server.use(cors(corsOptions));
-server.use(morgan('dev'));
-server.use(cookieParser());
+const PORT = process.env.PORT || 9999;
 
-server.use('/wallet', requireUserAuth, Wallet);
-server.use('/transactions', requireUserAuth, Transactions);
-server.use('/coin-flips', CoinFlips);
+const app = express();
+const server = app.listen(PORT);
 
-const port = process.env.PORT || 9999;
+const wsServer = new ws.Server({ noServer: true });
 
-server.listen(port, () => `Server listening on port ${port}`);
+wsServer.on('connection', (socket) => {
+  socket.on('message', (message) => {
+    wsServer.clients.forEach((client) => {
+      client.send(message);
+    });
+  });
+});
 
-export default server;
+server.on('upgrade', (req, socket, head) => {
+  wsServer.handleUpgrade(req, socket, head, (socket) => {
+    wsServer.emit('connection', socket, req);
+  });
+});
+
+app.use(express.json());
+app.use(cors(corsOptions));
+app.use(morgan('dev'));
+app.use(cookieParser());
+
+app.use('/wallet', requireUserAuth, Wallet);
+app.use('/transactions', requireUserAuth, Transactions);
+app.use('/coin-flips', CoinFlips);
+
+export default app;
