@@ -2,11 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
-import ws from 'ws';
 
 import Wallet from './Routes/Wallet';
 import Transactions from './Routes/Transactions';
 import CoinFlips from './Routes/CoinFlips';
+import wsServer from './Routes/Chat';
 
 import { requireUserAuth } from './Middleware/authMiddleware';
 
@@ -23,16 +23,6 @@ const PORT = process.env.PORT || 9999;
 
 const app = express();
 const server = app.listen(PORT);
-
-const wsServer = new ws.Server({ noServer: true });
-
-wsServer.on('connection', (socket) => {
-  socket.on('message', (message) => {
-    wsServer.clients.forEach((client) => {
-      client.send(message);
-    });
-  });
-});
 
 server.on('upgrade', (req, socket, head) => {
   wsServer.handleUpgrade(req, socket, head, (socket) => {
