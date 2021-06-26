@@ -1,3 +1,28 @@
+#mobile-chat-toggle {
+  display: none;
+  background: var(--bg-primary);
+  color: var(--main-font-color);
+  padding: 10px;
+  border: none;
+  font-weight: 600;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  svg {
+    margin-left: 10px;
+  }
+  @media (max-width: 1100px) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 95%;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    left: 50%;
+    transform: translate(-50%);
+  }
+}
+
 #chat {
   min-height: 400px;
   background: var(--bg-primary);
@@ -12,6 +37,18 @@
   }
   @media (max-width: 1100px) {
     display: none;
+    position: fixed;
+    bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    min-height: initial;
+    width: 100%;
+    max-height: initial;
+    z-index: 10;
+    &[data-open='true'] {
+      display: block;
+    }
   }
   .header {
     display: flex;

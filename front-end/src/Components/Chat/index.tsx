@@ -2,6 +2,9 @@ import { WS_ROOT } from 'API';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { useTypedSelector } from 'Reducers';
 
+import { ReactComponent as ChevronUp } from 'Assets/chevron-up.svg';
+import { ReactComponent as ChevronDown } from 'Assets/chevron-down.svg';
+
 import './Chat.scss';
 
 export default function Chat() {
@@ -27,13 +30,19 @@ export default function Chat() {
   }, [chat]);
 
   useEffect(() => {
-    socket.current = new WebSocket(WS_ROOT);
+    socket.current = new WebSocket(`${WS_ROOT}/chat`);
 
     socket.current.onmessage = (message) => {
-      console.log(message);
       const parsedData = JSON.parse(message.data);
-      setChat((prev) => [...prev, parsedData]);
+      if (parsedData.event === 'chatMessage') {
+        setChat((prev) => [...prev, parsedData.data]);
+      }
     };
+
+    // Ping ws every 2 minutes to keep alive
+    setInterval(() => {
+      socket.current?.send(JSON.stringify({ event: 'ping' }));
+    }, 120000);
   }, []);
 
   const handleSubmit = (e: FormEvent) => {
@@ -41,9 +50,12 @@ export default function Chat() {
 
     socket.current?.send(
       JSON.stringify({
-        displayName: account.displayName,
-        message: input,
-        timestamp: Date.now() / 1000
+        event: 'chatMessage',
+        data: {
+          displayName: account.displayName,
+          message: input,
+          timestamp: Date.now() / 1000
+        }
       })
     );
 
@@ -51,38 +63,46 @@ export default function Chat() {
   };
 
   return (
-    <div id="chat" data-open={open}>
-      <div className="container">
-        <div className="header">
-          <h1>Chat</h1>
-          <button className="btn close-button" onClick={() => setOpen(false)}>
-            &times;
-          </button>
-        </div>
-        <div className="chat-form-wrapper">
-          <div className="chat-container">
-            {chat.map((data: any) => (
-              <div className="chat-message">
-                <p>
-                  <strong className="display-name">{data.displayName}:</strong>
-                  {data.message}
-                </p>
-              </div>
-            ))}
-          </div>
-          <form onSubmit={handleSubmit}>
-            <input
-              onChange={(e) => setInput(e.target.value)}
-              value={input}
-              type="text"
-              placeholder="send message"
-            />
-            <button className="btn primary submit" type="submit">
-              Send
+    <>
+      <div id="chat" data-open={open}>
+        <div className="container">
+          <div className="header">
+            <h1>Chat</h1>
+            <button className="btn close-button" onClick={() => setOpen(false)}>
+              &times;
             </button>
-          </form>
+          </div>
+          <div className="chat-form-wrapper">
+            <div className="chat-container">
+              {chat.map((data: any) => (
+                <div className="chat-message">
+                  <p>
+                    <strong className="display-name">
+                      {data.displayName}:
+                    </strong>
+                    {data.message}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <form onSubmit={handleSubmit}>
+              <input
+                onChange={(e) => setInput(e.target.value)}
+                value={input}
+                type="text"
+                placeholder="send message"
+              />
+              <button className="btn primary submit" type="submit">
+                Send
+              </button>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
+      <button id="mobile-chat-toggle" onClick={() => setOpen(!open)}>
+        Chat
+        {open ? <ChevronDown /> : <ChevronUp />}
+      </button>
+    </>
   );
 }
