@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 const handleSendAuthError = (res) =>
   res.status(401).send({ type: 'authError', message: 'Not authorized' });
 
-const handleVerifyToken = (token) => {
+export const handleVerifyToken = (token) => {
   return new Promise((resolve, reject) => {
     jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decodedToken) => {
       if (err) {

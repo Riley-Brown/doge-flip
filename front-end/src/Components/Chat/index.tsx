@@ -44,16 +44,22 @@ export default function Chat() {
           }
         })
       );
+
+      // Ping ws every 2 minutes to keep alive
+      setInterval(() => {
+        socket.current?.send(
+          JSON.stringify({
+            event: 'ping',
+            data: { userId: account.userId }
+          })
+        );
+      }, 120000);
     };
 
     socket.current.onmessage = (message) => {
       const parsedData = JSON.parse(message.data);
       if (parsedData.event === 'chatMessage') {
         setChat((prev) => [...prev, parsedData.data]);
-      }
-
-      if (parsedData.event === 'ping') {
-        socket.current?.send(JSON.stringify({ event: 'pong' }));
       }
     };
   }, [account.userId]);
