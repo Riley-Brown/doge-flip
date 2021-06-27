@@ -17,6 +17,8 @@ import RecoverAccount from './RecoverAccount';
 import SecureAccount from './SecureAccount';
 import Withdraw from './Withdraw';
 
+import dogeLogo from 'Assets/doge-logo.png';
+
 const isDarkMode = JSON.parse(localStorage.getItem('darkMode'));
 
 export default function Deposit() {
@@ -187,11 +189,15 @@ export default function Deposit() {
 
   return (
     <div className="deposit">
-      <div>
-        <h1>Deposit doge</h1>
-        <p>
-          Deposits can be made to <br /> {publicDogeKey}
-        </p>
+      <div style={{ flex: 1 }}>
+        <div className="header-wrapper">
+          <div>
+            <h1>Deposit doge</h1>
+            <p>
+              Deposits can be made to <br /> {publicDogeKey}
+            </p>
+          </div>
+        </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <SecureAccount />
           <RecoverAccount />
@@ -237,13 +243,22 @@ export default function Deposit() {
           </p>
         </div>
       </div>
-      <QRCode
-        className="qr-code"
-        size={150}
-        value={publicDogeKey}
-        includeMargin={true}
-        bgColor="#fff"
-      />
+      <div className="much-style-qr-wrapper">
+        <div className="much-style">
+          <img src={dogeLogo} alt="Doge logo" width={200} />
+          <div>
+            <h1>Wow much website</h1>
+            <h1>Very style</h1>
+          </div>
+        </div>
+        <QRCode
+          className="qr-code"
+          size={150}
+          value={publicDogeKey}
+          includeMargin={true}
+          bgColor="#fff"
+        />
+      </div>
     </div>
   );
 }
