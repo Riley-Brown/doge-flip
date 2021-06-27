@@ -51,12 +51,11 @@ export default function Chat() {
       if (parsedData.event === 'chatMessage') {
         setChat((prev) => [...prev, parsedData.data]);
       }
-    };
 
-    // Ping ws every 2 minutes to keep alive
-    setInterval(() => {
-      socket.current?.send(JSON.stringify({ event: 'ping' }));
-    }, 90000);
+      if (parsedData.event === 'ping') {
+        socket.current?.send(JSON.stringify({ event: 'pong' }));
+      }
+    };
   }, [account.userId]);
 
   const handleSubmit = (e: FormEvent) => {
