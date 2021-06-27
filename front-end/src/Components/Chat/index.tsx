@@ -30,7 +30,21 @@ export default function Chat() {
   }, [chat]);
 
   useEffect(() => {
+    if (!account.userId) return;
+
     socket.current = new WebSocket(`${WS_ROOT}/chat`);
+
+    socket.current.onopen = () => {
+      socket.current?.send(
+        JSON.stringify({
+          event: 'chatInitialized',
+          data: {
+            displayName: account.displayName,
+            userId: account.userId
+          }
+        })
+      );
+    };
 
     socket.current.onmessage = (message) => {
       const parsedData = JSON.parse(message.data);
@@ -42,8 +56,8 @@ export default function Chat() {
     // Ping ws every 2 minutes to keep alive
     setInterval(() => {
       socket.current?.send(JSON.stringify({ event: 'ping' }));
-    }, 120000);
-  }, []);
+    }, 90000);
+  }, [account.userId]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
