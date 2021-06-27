@@ -2,11 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import { Server } from 'socket.io';
 
 import Wallet from './Routes/Wallet';
 import Transactions from './Routes/Transactions';
 import CoinFlips from './Routes/CoinFlips';
-import wsServer from './Routes/Chat';
 
 import { requireUserAuth } from './Middleware/authMiddleware';
 
@@ -24,9 +24,20 @@ const PORT = process.env.PORT || 9999;
 const app = express();
 const server = app.listen(PORT);
 
-server.on('upgrade', (req, socket, head) => {
-  wsServer.handleUpgrade(req, socket, head, (socket) => {
-    wsServer.emit('connection', socket, req);
+export const io = new Server(server, {
+  path: '/chat',
+  cors: {
+    origin: [
+      'http://localhost:3000',
+      'https://competent-shannon-ea4b21.netlify.app',
+      'https://doge-flip.riley.gg'
+    ]
+  }
+});
+
+io.on('connection', (socket) => {
+  socket.on('chatMessage', (message) => {
+    io.emit('chatMessage', message);
   });
 });
 

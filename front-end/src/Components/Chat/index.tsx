@@ -1,6 +1,7 @@
-import { WS_ROOT } from 'API';
+import { API_ROOT } from 'API';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { useTypedSelector } from 'Reducers';
+import { io, Socket } from 'socket.io-client';
 
 import { ReactComponent as ChevronUp } from 'Assets/chevron-up.svg';
 import { ReactComponent as ChevronDown } from 'Assets/chevron-down.svg';
@@ -13,7 +14,7 @@ export default function Chat() {
 
   const [open, setOpen] = useState(false);
 
-  const socket = useRef<WebSocket>();
+  const socket = useRef<Socket>();
 
   const account = useTypedSelector((state) => state.account);
 
@@ -32,51 +33,21 @@ export default function Chat() {
   useEffect(() => {
     if (!account.userId) return;
 
-    socket.current = new WebSocket(`${WS_ROOT}/chat`);
+    socket.current = io(`${API_ROOT}`, { path: '/chat' });
 
-    socket.current.onopen = () => {
-      socket.current?.send(
-        JSON.stringify({
-          event: 'chatInitialized',
-          data: {
-            displayName: account.displayName,
-            userId: account.userId
-          }
-        })
-      );
-
-      // Ping ws every 2 minutes to keep alive
-      setInterval(() => {
-        socket.current?.send(
-          JSON.stringify({
-            event: 'ping',
-            data: { userId: account.userId }
-          })
-        );
-      }, 120000);
-    };
-
-    socket.current.onmessage = (message) => {
-      const parsedData = JSON.parse(message.data);
-      if (parsedData.event === 'chatMessage') {
-        setChat((prev) => [...prev, parsedData.data]);
-      }
-    };
+    socket.current?.on('chatMessage', (message) => {
+      setChat((prev) => [...prev, message]);
+    });
   }, [account.userId]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    socket.current?.send(
-      JSON.stringify({
-        event: 'chatMessage',
-        data: {
-          displayName: account.displayName,
-          message: input,
-          timestamp: Date.now() / 1000
-        }
-      })
-    );
+    socket.current?.emit('chatMessage', {
+      displayName: account.displayName,
+      message: input,
+      timestamp: Date.now() / 1000
+    });
 
     setInput('');
   };
