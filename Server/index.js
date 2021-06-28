@@ -2,44 +2,34 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
-import { Server } from 'socket.io';
 
 import Wallet from './Routes/Wallet';
 import Transactions from './Routes/Transactions';
 import CoinFlips from './Routes/CoinFlips';
+import Chat, { initSocketIo } from './Routes/Chat';
 
 import { requireUserAuth } from './Middleware/authMiddleware';
 
+export const corsOrigins = [
+  'http://localhost:3000',
+  'https://competent-shannon-ea4b21.netlify.app',
+  'https://doge-flip.riley.gg'
+];
+
 const corsOptions = {
   credentials: true,
-  origin: [
-    'http://localhost:3000',
-    'https://competent-shannon-ea4b21.netlify.app',
-    'https://doge-flip.riley.gg'
-  ]
+  origin: corsOrigins
 };
 
 const PORT = process.env.PORT || 9999;
 
 const app = express();
-const server = app.listen(PORT);
 
-export const io = new Server(server, {
-  path: '/chat',
-  cors: {
-    origin: [
-      'http://localhost:3000',
-      'https://competent-shannon-ea4b21.netlify.app',
-      'https://doge-flip.riley.gg'
-    ]
-  }
+export const server = app.listen(PORT, async () => {
+  console.log(`Server started on port ${PORT}`);
 });
 
-io.on('connection', (socket) => {
-  socket.on('chatMessage', (message) => {
-    io.emit('chatMessage', message);
-  });
-});
+initSocketIo(server);
 
 app.use(express.json());
 app.use(cors(corsOptions));
@@ -49,5 +39,6 @@ app.use(cookieParser());
 app.use('/wallet', requireUserAuth, Wallet);
 app.use('/transactions', requireUserAuth, Transactions);
 app.use('/coin-flips', CoinFlips);
+app.use('/chat', Chat);
 
 export default app;
