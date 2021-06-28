@@ -10,7 +10,7 @@ const redisUrl = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
 const redisClient = redis.createClient({ url: redisUrl });
 
 // clear existing messages after 5 hours
-redisClient.expire('chatMessages', 18000);
+// redisClient.expire('chatMessages', 18000);
 
 export function initSocketIo(server) {
   const socketIo = new Server(server, {
