@@ -48,7 +48,7 @@
     max-height: initial;
     z-index: 10;
     margin-left: 0;
-    height: 100vh;
+    height: 100%;
     &[data-open='true'] {
       display: block;
     }
