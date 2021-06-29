@@ -149,11 +149,13 @@ export default function CoinFlip({
             <RotatingCoin winningSide={coinFlipState.winningSide} />
           )}
           {coinFlipState.status === 'finished' && (
-            <div>
+            <div className="finished-result">
               <p>Winning side: {coinFlipState.winningSide}</p>
               <p>Winning number: {coinFlipState.float}</p>
               <p>Winner amount: {coinFlipState.winningAmount}</p>
-              <p>Winner: {coinFlipState.winnerDisplayName}</p>
+              <p className="winner">
+                Winner: {coinFlipState.winnerDisplayName}
+              </p>
             </div>
           )}
         </div>
