@@ -101,7 +101,7 @@ export default function CoinFlip({
     <div className="coin-flip">
       <div className="flip-info">
         <div className="amount-date">
-          <h3>Doge amount: {coinFlipState.dogeAmount}</h3>
+          <h3>Doge amount: {coinFlipState.dogeAmount.toLocaleString()}</h3>
           <h3>
             Created{' '}
             <Moment fromNow={true} unix={true}>
@@ -152,7 +152,9 @@ export default function CoinFlip({
             <div className="finished-result">
               <p>Winning side: {coinFlipState.winningSide}</p>
               <p>Winning number: {coinFlipState.float}</p>
-              <p>Winner amount: {coinFlipState.winningAmount}</p>
+              <p>
+                Winner amount: {coinFlipState.winningAmount.toLocaleString()}
+              </p>
               <p className="winner">
                 Winner: {coinFlipState.winnerDisplayName}
               </p>
