@@ -95,6 +95,7 @@ router.get('/', async (req, res) => {
     data: {
       balance: data.balance,
       displayName: data.displayName,
+      isAdmin: data.isAdmin,
       network: data.network,
       publicAddress: data.publicAddress,
       userId: data.userId
