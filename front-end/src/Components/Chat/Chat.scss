@@ -115,6 +115,9 @@
   .chat-message {
     display: flex;
     flex-wrap: wrap;
+    .delete-chat-button {
+      color: var(--main-font-color);
+    }
     .display-name {
       margin-right: 10px;
       font-weight: 600;

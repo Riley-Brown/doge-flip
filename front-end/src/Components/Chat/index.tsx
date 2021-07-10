@@ -5,6 +5,7 @@ import { io, Socket } from 'socket.io-client';
 
 import { ReactComponent as ChevronUp } from 'Assets/chevron-up.svg';
 import { ReactComponent as ChevronDown } from 'Assets/chevron-down.svg';
+import { ReactComponent as DeleteIcon } from 'Assets/x-circle.svg';
 
 import './Chat.scss';
 import { getChatMessages } from 'API/chat';
@@ -40,10 +41,17 @@ export default function Chat() {
   useEffect(() => {
     if (!account.userId) return;
 
-    socket.current = io(`${API_ROOT}`, { path: '/socket/chat' });
+    socket.current = io(`${API_ROOT}`, {
+      path: '/socket/chat',
+      withCredentials: true
+    });
 
     socket.current?.on('chatMessage', (message) => {
       setChat((prev) => [...prev, message]);
+    });
+
+    socket.current?.on('messageDeleted', (messages) => {
+      setChat(messages);
     });
 
     socket.current.on('totalChatters', (total) => {
@@ -62,6 +70,10 @@ export default function Chat() {
     });
 
     setInput('');
+  };
+
+  const handleDeleteChatMessage = async (id: string) => {
+    socket.current?.emit('deleteChatMessage', { id });
   };
 
   return (
@@ -83,6 +95,14 @@ export default function Chat() {
                     <strong className="display-name">
                       {data.displayName}:
                     </strong>
+                    {account.isAdmin && (
+                      <button
+                        onClick={() => handleDeleteChatMessage(data.id)}
+                        className="btn delete-chat-button"
+                      >
+                        <DeleteIcon />
+                      </button>
+                    )}
                     {data.message}
                   </p>
                 </div>

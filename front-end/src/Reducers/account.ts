@@ -4,6 +4,7 @@ import { Action } from 'redux';
 export type AccountStateTypes = {
   balance: number;
   displayName: string;
+  isAdmin: boolean;
   network: string;
   publicAddress: string;
   userId: string;
@@ -12,6 +13,7 @@ export type AccountStateTypes = {
 const initialState: AccountStateTypes = {
   balance: 0,
   displayName: '',
+  isAdmin: false,
   network: '',
   publicAddress: '',
   userId: ''
