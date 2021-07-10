@@ -1,8 +1,11 @@
 import redis from 'redis';
 import { Server } from 'socket.io';
 import { Router } from 'express';
+import { v4 as uuid } from 'uuid';
 
 import { corsOrigins } from '../../';
+
+import { handleVerifyAdminToken } from '../../Auth';
 
 const router = Router();
 
@@ -16,7 +19,8 @@ export function initSocketIo(server) {
   const socketIo = new Server(server, {
     path: '/socket/chat',
     cors: {
-      origin: corsOrigins
+      origin: corsOrigins,
+      credentials: true
     }
   });
 
@@ -33,8 +37,46 @@ export function initSocketIo(server) {
     handleUpdateTotalChatters(socketIo);
 
     socket.on('chatMessage', (message) => {
-      socketIo.emit('chatMessage', message);
-      redisClient.rpush('chatMessages', JSON.stringify(message));
+      const id = uuid();
+
+      socketIo.emit('chatMessage', { ...message, id });
+      redisClient.rpush('chatMessages', JSON.stringify({ ...message, id }));
+    });
+
+    socket.on('deleteChatMessage', async (data) => {
+      const cookie = socket.handshake?.headers?.cookie;
+
+      if (!cookie) return;
+
+      const isAdmin = await handleVerifyAdminToken(
+        cookie.split('userToken=')[1]
+      );
+
+      if (!isAdmin) {
+        return;
+      }
+
+      redisClient.lrange('chatMessages', 0, -1, (err, messages) => {
+        const parsedMessages = messages.map((message) => JSON.parse(message));
+
+        let messageIndex = -1;
+
+        const filteredMessages = parsedMessages.filter((message, index) => {
+          if (message.id === data.id) {
+            messageIndex = index;
+            return false;
+          }
+
+          return true;
+        });
+
+        if (messageIndex > -1) {
+          redisClient.lset('chatMessages', messageIndex, 'deleted');
+          redisClient.lrem('chatMessages', 1, 'deleted');
+
+          socket.emit('messageDeleted', filteredMessages);
+        }
+      });
     });
 
     socket.on('disconnect', () => {
