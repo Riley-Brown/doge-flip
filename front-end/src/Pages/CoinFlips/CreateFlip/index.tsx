@@ -108,6 +108,7 @@ export default function CreateFlip({
           <div className="input-wrapper">
             <label htmlFor="doge-amount">Doge amount</label>
             <input
+              inputMode="numeric"
               {...register('dogeAmount', {
                 required: 'Amount is required',
                 validate: {
