@@ -29,3 +29,15 @@ export async function joinCoinFlip({ coinFlipId }) {
   const json = await res.json();
   return json;
 }
+
+export async function closeCoinFlip(coinFlip) {
+  const res = await fetch(`${API_ROOT}/coin-flips/close`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(coinFlip)
+  });
+
+  const json = await res.json();
+  return json;
+}
