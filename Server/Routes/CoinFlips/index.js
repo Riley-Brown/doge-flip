@@ -300,7 +300,8 @@ router.get('/events', async (req, res) => {
     { eventType: 'inProgress' },
     { eventType: 'flipping' },
     { eventType: 'finished' },
-    { eventType: 'coinFlipCreated' }
+    { eventType: 'coinFlipCreated' },
+    { eventType: 'coinFlipClosed' }
   ];
 
   events.forEach((event) =>
@@ -314,6 +315,75 @@ router.get('/events', async (req, res) => {
       coinFlipEvents.removeListener(event.eventType, handleSendEvent)
     );
     res.end();
+  });
+});
+
+router.post('/close', requireUserAuth, async (req, res) => {
+  const { _id: coinFlipId, createdByUserId } = req.body;
+  const { userId } = res.locals.userTokenObject;
+
+  if (!coinFlipId || !createdByUserId || !userId) {
+    return res
+      .status(400)
+      .json({ type: 'error', message: 'Invalid parameters' });
+  }
+
+  const activeCoinFlipsCollection = mongoClient
+    .db('doge-flip')
+    .collection('active-coin-flips');
+
+  const activeCoinFlip = await activeCoinFlipsCollection.findOne({
+    _id: ObjectId(coinFlipId)
+  });
+
+  if (!activeCoinFlip) {
+    return res
+      .status(400)
+      .json({ type: 'error', message: 'Coin flip does not exist' });
+  }
+
+  if (activeCoinFlip.createdByUserId !== userId) {
+    return res
+      .status(403)
+      .json({ type: 'error', message: 'Cannot close other users coin flips' });
+  }
+
+  if (activeCoinFlip.status !== 'active') {
+    return res.status(400).json({
+      type: 'error',
+      message: 'Coin flip is in progress or has already ended'
+    });
+  }
+
+  const closeActiveFlip = await activeCoinFlipsCollection.findOneAndUpdate(
+    {
+      _id: ObjectId(coinFlipId)
+    },
+    {
+      $set: { status: 'closed' }
+    }
+  );
+
+  const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
+
+  const updateUserBalance = await walletsCollection.findOneAndUpdate(
+    { _id: userId },
+    {
+      $inc: { balance: activeCoinFlip.dogeAmount }
+    },
+    { returnDocument: 'after' }
+  );
+
+  coinFlipEvents.emit('coinFlipClosed', {
+    ...activeCoinFlip,
+    status: 'closed'
+  });
+
+  res.json({
+    type: 'ok',
+    data: {
+      balance: updateUserBalance.value.balance
+    }
   });
 });
 
