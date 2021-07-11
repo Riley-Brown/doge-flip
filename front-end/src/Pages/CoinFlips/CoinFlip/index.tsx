@@ -12,6 +12,7 @@ import { useDispatch } from 'react-redux';
 import { updateAccount } from 'Actions';
 
 import RotatingCoin from 'Components/RotatingCoin';
+import CloseFlip from '../CloseFlip';
 
 export type FlipSide = 'heads' | 'tails';
 export type FlipStatus = 'active' | 'inProgress' | 'flipping' | 'finished';
@@ -20,12 +21,14 @@ export type CoinFlipTypes =
   | ActiveTypes
   | InProgressTypes
   | FlippingTypes
-  | FinishedTypes;
+  | FinishedTypes
+  | ClosedTypes;
 
 type CoinFlipSharedTypes = {
   _id: string;
   createdAt: number;
   createdByDisplayName: string;
+  createdByUserId: string;
   creatorSide: FlipSide;
   dogeAmount: number;
 };
@@ -48,6 +51,11 @@ interface FlippingTypes extends CoinFlipSharedTypes {
   winningSide: FlipSide;
 }
 
+interface ClosedTypes extends CoinFlipSharedTypes {
+  status: 'closed';
+  joinedByDisplayName: '';
+}
+
 interface FinishedTypes extends CoinFlipSharedTypes {
   float: number;
   joinedByDisplayName: string;
@@ -65,7 +73,7 @@ export default function CoinFlip({
   coinFlipEvent
 }: {
   coinFlip: CoinFlipTypes;
-  coinFlipEvent: InProgressTypes | FinishedTypes;
+  coinFlipEvent: CoinFlipTypes;
 }) {
   const [coinFlipState, setCoinFlipState] = useState(coinFlip);
   const account = useTypedSelector((state) => state.account);
@@ -80,7 +88,7 @@ export default function CoinFlip({
         coinFlipEvent.winnerId === account.userId
       ) {
         addToast(
-          <h2>
+          <h2 style={{ marginTop: 0 }}>
             Congratulations! You just won {coinFlipEvent.winningAmount} doge
             coin
           </h2>,
@@ -97,6 +105,10 @@ export default function CoinFlip({
     }
   }, [coinFlipEvent]);
 
+  if (coinFlipState.status === 'closed') {
+    return null;
+  }
+
   return (
     <div className="coin-flip">
       <div className="flip-info">
@@ -108,6 +120,10 @@ export default function CoinFlip({
               {coinFlipState.createdAt}
             </Moment>
           </h3>
+          {coinFlipState.status === 'active' &&
+            coinFlipState.createdByUserId === account.userId && (
+              <CloseFlip coinFlip={coinFlip} />
+            )}
         </div>
       </div>
       <div className="sides-wrapper">
