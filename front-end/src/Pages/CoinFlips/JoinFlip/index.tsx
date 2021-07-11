@@ -13,8 +13,9 @@ import { CoinFlipTypes } from '../CoinFlip';
 
 export default function JoinFlip({ coinFlip }: { coinFlip: CoinFlipTypes }) {
   const [show, setShow] = useState(false);
-  const [errorType, setErrorType] =
-    useState<'balanceError' | 'joinError' | 'walletError'>();
+  const [errorType, setErrorType] = useState<
+    'balanceError' | 'joinError' | 'walletError'
+  >();
 
   const dispatch = useDispatch();
 
@@ -88,8 +89,8 @@ export default function JoinFlip({ coinFlip }: { coinFlip: CoinFlipTypes }) {
               <p>Not enough balance to enter this flip</p>
             ) : (
               <p>
-                Joining this flip will deduct {coinFlip.dogeAmount} doge from
-                your balance
+                Joining this flip will deduct{' '}
+                {coinFlip.dogeAmount.toLocaleString()} doge from your balance
               </p>
             )}
             <div style={{ marginTop: 40 }}>
