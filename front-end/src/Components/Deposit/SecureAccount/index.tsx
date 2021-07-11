@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import SweetAlert from 'react-bootstrap-sweetalert';
-import { SweetAlertType } from 'react-bootstrap-sweetalert/dist/types';
 
 import { useTypedSelector } from 'Reducers';
 
@@ -11,7 +10,10 @@ import { ReactComponent as DownloadSvg } from 'Assets/download.svg';
 
 import { getWalletRecoveryKey, resetWalletRecoveryKey } from 'API';
 
+import { ReactComponent as CopySvg } from 'Assets/clipboard.svg';
+
 import Portal from 'Components/Portal';
+import useCopyToClipboard from 'Hooks/useCopyToClipboard';
 
 export default function SecureAccount() {
   const [show, setShow] = useState(false);
@@ -30,6 +32,14 @@ export default function SecureAccount() {
   const publicAddress = useTypedSelector(
     (state) => state.account.publicAddress
   );
+
+  const [handleCopyPublicAddress, publicAddressCopied] = useCopyToClipboard({
+    copiedTimeout: 2000
+  });
+
+  const [handleCopyRecoveryKey, recoveryKeyCopied] = useCopyToClipboard({
+    copiedTimeout: 2000
+  });
 
   return (
     <>
@@ -63,7 +73,29 @@ export default function SecureAccount() {
           </div>
 
           <div style={{ textAlign: 'left' }}>
-            <h3>Public address</h3>
+            <h3>
+              Public address
+              <button
+                onClick={() => handleCopyPublicAddress(publicAddress)}
+                title="Copy Public address"
+                className="btn"
+              >
+                <CopySvg />
+              </button>
+              {publicAddressCopied && (
+                <small
+                  style={{
+                    display: 'block',
+                    fontWeight: 400,
+                    fontSize: '1rem',
+                    color: 'var(--success-darker)'
+                  }}
+                >
+                  Copied to clipboard
+                </small>
+              )}
+            </h3>
+
             <p>{publicAddress}</p>
           </div>
           <div style={{ textAlign: 'left' }}>
@@ -74,7 +106,26 @@ export default function SecureAccount() {
               }}
             >
               <h3 style={{ marginRight: 'auto' }}>
-                Public address recovery key
+                Recovery key
+                <button
+                  onClick={() => handleCopyRecoveryKey(recoveryKey)}
+                  title="Copy Recovery key"
+                  className="btn"
+                >
+                  <CopySvg />
+                </button>
+                {recoveryKeyCopied && (
+                  <small
+                    style={{
+                      display: 'block',
+                      fontWeight: 400,
+                      fontSize: '1rem',
+                      color: 'var(--success-darker)'
+                    }}
+                  >
+                    Copied to clipboard
+                  </small>
+                )}
               </h3>
               <button
                 onClick={() => setShowRecoveryKey(!showRecoveryKey)}
