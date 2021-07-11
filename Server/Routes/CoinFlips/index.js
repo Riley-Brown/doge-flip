@@ -162,17 +162,11 @@ router.post('/join', requireUserAuth, async (req, res) => {
     });
   }
 
-  const updatedWallet = await walletsCollection.findOneAndUpdate(
-    { _id: userId },
-    { $inc: { balance: -activeCoinFlip.dogeAmount } },
-    { returnDocument: 'after' }
-  );
-
   const joinDate = Math.floor(Date.now() / 1000);
   const side = activeCoinFlip.creatorSide === 'heads' ? 'tails' : 'heads';
 
   const updatedCoinFlip = await activeCoinFlipsCollection.findOneAndUpdate(
-    { _id: ObjectId(coinFlipId) },
+    { _id: ObjectId(coinFlipId), status: { $eq: 'active' } },
     {
       $set: {
         status: 'inProgress',
@@ -182,6 +176,19 @@ router.post('/join', requireUserAuth, async (req, res) => {
         joinedUserSide: side
       }
     },
+    { returnDocument: 'after' }
+  );
+
+  if (!updatedCoinFlip.value) {
+    return res.status(400).json({
+      type: 'error',
+      message: 'Unable to join non-active Coin Flip'
+    });
+  }
+
+  const updatedWallet = await walletsCollection.findOneAndUpdate(
+    { _id: userId },
+    { $inc: { balance: -activeCoinFlip.dogeAmount } },
     { returnDocument: 'after' }
   );
 
@@ -357,12 +364,20 @@ router.post('/close', requireUserAuth, async (req, res) => {
 
   const closeActiveFlip = await activeCoinFlipsCollection.findOneAndUpdate(
     {
-      _id: ObjectId(coinFlipId)
+      _id: ObjectId(coinFlipId),
+      status: { $eq: 'active' }
     },
     {
       $set: { status: 'closed' }
     }
   );
+
+  if (!closeActiveFlip.value) {
+    return res.status(400).json({
+      type: 'error',
+      message: 'Unable to close a non-active Coin Flip'
+    });
+  }
 
   const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
 
