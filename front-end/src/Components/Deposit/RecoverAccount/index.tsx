@@ -44,9 +44,12 @@ export default function RecoverAccount() {
     setLoading(false);
   });
 
-  console.log(errors);
-
   const handleResetState = () => {
+    if (type === 'success') {
+      setValue('publicAddress', '');
+      setValue('recoveryKey', '');
+    }
+
     setType('default');
     setShow(false);
     clearErrors();
