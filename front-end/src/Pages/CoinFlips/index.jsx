@@ -28,13 +28,15 @@ export default function CoinFlips() {
         const parsedData = JSON.parse(message.data);
         console.log({ parsedData });
 
-        if (parsedData.eventType === 'coinFlipCreated') {
-          setActiveCoinFlips((prev) => [parsedData, ...prev]);
-        } else {
-          setCoinFlipsEvents((prev) => ({
-            ...prev,
-            [parsedData._id]: parsedData
-          }));
+        switch (parsedData.eventType) {
+          case 'coinFlipCreated':
+            setActiveCoinFlips((prev) => [parsedData, ...prev]);
+            break;
+          default:
+            setCoinFlipsEvents((prev) => ({
+              ...prev,
+              [parsedData._id]: parsedData
+            }));
         }
       });
     });
