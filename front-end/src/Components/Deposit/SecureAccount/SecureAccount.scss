@@ -1,0 +1,13 @@
+#secure-account-modal {
+  svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  @media (max-width: 500px) {
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}

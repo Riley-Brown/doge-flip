@@ -15,6 +15,8 @@ import { ReactComponent as CopySvg } from 'Assets/clipboard.svg';
 import Portal from 'Components/Portal';
 import useCopyToClipboard from 'Hooks/useCopyToClipboard';
 
+import './SecureAccount.scss';
+
 export default function SecureAccount() {
   const [show, setShow] = useState(false);
 
@@ -102,7 +104,8 @@ export default function SecureAccount() {
             <div
               style={{
                 display: 'flex',
-                alignItems: 'center'
+                alignItems: 'center',
+                flexWrap: 'wrap'
               }}
             >
               <h3 style={{ marginRight: 'auto' }}>
@@ -127,50 +130,48 @@ export default function SecureAccount() {
                   </small>
                 )}
               </h3>
-              <button
-                onClick={() => setShowRecoveryKey(!showRecoveryKey)}
-                className="btn"
-                title={
-                  showRecoveryKey ? 'Hide recovery key' : 'Show recovery key'
-                }
-              >
-                {showRecoveryKey ? (
-                  <EyeOffSvg width={30} height={30} />
-                ) : (
-                  <EyeSvg width={30} height={30} />
-                )}
-              </button>
-              <button
-                onClick={async () => {
-                  const { data } = await resetWalletRecoveryKey();
-                  setRecoveryKey(data.recoveryKey);
-                }}
-                title="Generate new recovery key"
-                aria-label="Generate recovery key"
-                className="btn"
-              >
-                <ResetSvg width={30} height={30} />
-              </button>
-              <button
-                className="btn"
-                onClick={() => {
-                  const element = document.createElement('a');
+              <div>
+                <button
+                  onClick={() => setShowRecoveryKey(!showRecoveryKey)}
+                  className="btn"
+                  title={
+                    showRecoveryKey ? 'Hide recovery key' : 'Show recovery key'
+                  }
+                >
+                  {showRecoveryKey ? <EyeOffSvg /> : <EyeSvg />}
+                </button>
+                <button
+                  onClick={async () => {
+                    const { data } = await resetWalletRecoveryKey();
+                    setRecoveryKey(data.recoveryKey);
+                  }}
+                  title="Generate new recovery key"
+                  aria-label="Generate recovery key"
+                  className="btn"
+                >
+                  <ResetSvg />
+                </button>
+                <button
+                  className="btn"
+                  onClick={() => {
+                    const element = document.createElement('a');
 
-                  const file = new Blob(
-                    [
-                      `publicAddress\n${publicAddress}\n\nrecoveryKey\n${recoveryKey}`
-                    ],
-                    { type: 'text/plain' }
-                  );
+                    const file = new Blob(
+                      [
+                        `publicAddress\n${publicAddress}\n\nrecoveryKey\n${recoveryKey}`
+                      ],
+                      { type: 'text/plain' }
+                    );
 
-                  element.href = URL.createObjectURL(file);
-                  element.download = 'doge-flip-recovery-keys.txt';
-                  document.body.appendChild(element); // Required for this to work in FireFox
-                  element.click();
-                }}
-              >
-                <DownloadSvg width={30} height={30} />
-              </button>
+                    element.href = URL.createObjectURL(file);
+                    element.download = 'doge-flip-recovery-keys.txt';
+                    document.body.appendChild(element); // Required for this to work in FireFox
+                    element.click();
+                  }}
+                >
+                  <DownloadSvg />
+                </button>
+              </div>
             </div>
             <p>
               {showRecoveryKey
