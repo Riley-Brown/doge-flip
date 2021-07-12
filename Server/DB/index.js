@@ -15,3 +15,9 @@ client.connect().then(() => {
 });
 
 export const mongoClient = client;
+
+export const getWalletsCollection = () =>
+  mongoClient.db('doge-flip').collection('wallets');
+
+export const getActiveCoinFlipsCollection = () =>
+  mongoClient.db('doge-flip').collection('active-coin-flips');

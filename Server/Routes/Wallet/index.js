@@ -3,7 +3,7 @@ import { Router } from 'express';
 import coinInfo from 'coininfo';
 import CoinKey from 'coinkey';
 
-import { mongoClient } from '../../DB';
+import { getWalletsCollection } from '../../DB';
 
 import { DOGE_NETWORK, getUnspentTx, MAIN_WALLET_PUBLIC_KEY } from '../../API';
 
@@ -34,7 +34,7 @@ async function handleCreateWallet(res) {
 
   handleCreateUserToken({ userId, publicAddress: key.publicAddress, res });
 
-  const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
+  const walletsCollection = getWalletsCollection();
 
   await walletsCollection.insertOne({
     _id: userId,
@@ -53,7 +53,7 @@ router.post('/update', async (req, res) => {
   const { displayName } = req.body;
   const { publicAddress } = res.locals.userTokenObject;
 
-  const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
+  const walletsCollection = getWalletsCollection();
   const wallet = await walletsCollection.findOne({ publicAddress });
 
   if (!wallet) {
@@ -86,8 +86,7 @@ router.get('/', async (req, res) => {
     publicAddress = data.publicAddress;
   }
 
-  const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
-
+  const walletsCollection = getWalletsCollection();
   const data = await walletsCollection.findOne({ publicAddress });
 
   res.send({
@@ -112,8 +111,7 @@ router.post('/sync-wallet', async (req, res) => {
       .json({ type: 'error', message: 'This wallet does not exist' });
   }
 
-  const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
-
+  const walletsCollection = getWalletsCollection();
   const wallet = await walletsCollection.findOne({ publicAddress });
 
   if (!wallet) {
@@ -208,7 +206,7 @@ router.post('/recover', async (req, res) => {
     return res.status(400).json({ type: 'error', message: 'Invalid params' });
   }
 
-  const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
+  const walletsCollection = getWalletsCollection();
   const wallet = await walletsCollection.findOne({ publicAddress });
 
   if (!wallet) {
@@ -251,7 +249,7 @@ router.get('/recovery-key', async (req, res) => {
     return res.status(400).json({ type: 'error', message: 'Invalid params' });
   }
 
-  const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
+  const walletsCollection = getWalletsCollection();
   const wallet = await walletsCollection.findOne({ publicAddress });
 
   if (!wallet) {
@@ -288,7 +286,7 @@ router.post('/reset-recovery-key', async (req, res) => {
     return res.status(400).json({ type: 'error', message: 'Invalid params' });
   }
 
-  const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
+  const walletsCollection = getWalletsCollection();
   const wallet = await walletsCollection.findOne({ publicAddress });
 
   if (!wallet) {

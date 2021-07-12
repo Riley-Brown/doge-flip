@@ -2,7 +2,11 @@ import { Router } from 'express';
 import Provable from 'provable';
 import EventEmitter from 'events';
 
-import { mongoClient, ObjectId } from '../../DB';
+import {
+  getWalletsCollection,
+  ObjectId,
+  getActiveCoinFlipsCollection
+} from '../../DB';
 
 import { requireUserAuth } from '../../Middleware/authMiddleware';
 
@@ -46,11 +50,8 @@ router.post('/create', requireUserAuth, async (req, res) => {
         .json({ type: 'error', message: 'Invalid parameters' });
     }
 
-    const activeCoinFlipsCollection = mongoClient
-      .db('doge-flip')
-      .collection('active-coin-flips');
-
-    const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
+    const activeCoinFlipsCollection = getActiveCoinFlipsCollection();
+    const walletsCollection = getWalletsCollection();
 
     const userWallet = await walletsCollection.findOne({ _id: userId });
 
@@ -98,10 +99,7 @@ router.post('/create', requireUserAuth, async (req, res) => {
 
 router.get('/active', async (req, res) => {
   try {
-    const activeCoinFlipsCollection = mongoClient
-      .db('doge-flip')
-      .collection('active-coin-flips');
-
+    const activeCoinFlipsCollection = getActiveCoinFlipsCollection();
     const activeCoinFlips = await activeCoinFlipsCollection.find({}).toArray();
 
     res.send({ type: 'ok', data: activeCoinFlips });
@@ -125,10 +123,7 @@ router.post('/join', requireUserAuth, async (req, res) => {
       .json({ type: 'error', message: 'Invalid parameters' });
   }
 
-  const activeCoinFlipsCollection = mongoClient
-    .db('doge-flip')
-    .collection('active-coin-flips');
-
+  const activeCoinFlipsCollection = getActiveCoinFlipsCollection();
   const activeCoinFlip = await activeCoinFlipsCollection.findOne({
     _id: ObjectId(coinFlipId)
   });
@@ -146,7 +141,7 @@ router.post('/join', requireUserAuth, async (req, res) => {
     });
   }
 
-  const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
+  const walletsCollection = getWalletsCollection();
   const wallet = await walletsCollection.findOne({ _id: userId });
 
   if (!wallet) {
@@ -335,10 +330,7 @@ router.post('/close', requireUserAuth, async (req, res) => {
       .json({ type: 'error', message: 'Invalid parameters' });
   }
 
-  const activeCoinFlipsCollection = mongoClient
-    .db('doge-flip')
-    .collection('active-coin-flips');
-
+  const activeCoinFlipsCollection = getActiveCoinFlipsCollection();
   const activeCoinFlip = await activeCoinFlipsCollection.findOne({
     _id: ObjectId(coinFlipId)
   });
@@ -379,13 +371,11 @@ router.post('/close', requireUserAuth, async (req, res) => {
     });
   }
 
-  const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
+  const walletsCollection = getWalletsCollection();
 
   const updateUserBalance = await walletsCollection.findOneAndUpdate(
     { _id: userId },
-    {
-      $inc: { balance: activeCoinFlip.dogeAmount }
-    },
+    { $inc: { balance: activeCoinFlip.dogeAmount } },
     { returnDocument: 'after' }
   );
 

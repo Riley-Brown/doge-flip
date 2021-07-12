@@ -1,4 +1,4 @@
-import { mongoClient } from '../../DB';
+import { getWalletsCollection } from '../../DB';
 
 import { Router } from 'express';
 import {
@@ -33,8 +33,7 @@ router.post('/withdraw', async (req, res) => {
   }
 
   try {
-    const walletsCollection = mongoClient.db('doge-flip').collection('wallets');
-
+    const walletsCollection = getWalletsCollection();
     const userWallet = await walletsCollection.findOne({ _id: userId });
 
     if (!userWallet) {
