@@ -89,8 +89,8 @@ export default function CoinFlip({
       ) {
         addToast(
           <h2 style={{ marginTop: 0 }}>
-            Congratulations! You just won {coinFlipEvent.winningAmount} doge
-            coin
+            Congratulations! You just won{' '}
+            {coinFlipEvent.winningAmount.toLocaleString()} doge coin
           </h2>,
           { appearance: 'success', autoDismiss: true }
         );
