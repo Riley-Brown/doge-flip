@@ -14,7 +14,6 @@ export default function RecoverAccount() {
   const [type, setType] = useState<SweetAlertType>('default');
 
   const {
-    setError,
     register,
     handleSubmit,
     formState: { errors },
@@ -22,13 +21,10 @@ export default function RecoverAccount() {
     clearErrors
   } = useForm<{ publicAddress: string; recoveryKey: string }>();
 
-  const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState('Recover account');
   const dispatch = useDispatch();
 
   const onSubmit = handleSubmit(async ({ publicAddress, recoveryKey }) => {
-    setLoading(true);
-
     const recover = await recoverWallet({ publicAddress, recoveryKey });
     console.log({ recover });
 
@@ -40,8 +36,6 @@ export default function RecoverAccount() {
       setType('error');
       setTitle(recover.message);
     }
-
-    setLoading(false);
   });
 
   const handleResetState = () => {
@@ -54,7 +48,6 @@ export default function RecoverAccount() {
     setShow(false);
     clearErrors();
     setTitle('Recover account');
-    setLoading(false);
   };
 
   return (
