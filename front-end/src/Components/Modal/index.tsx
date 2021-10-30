@@ -50,7 +50,7 @@ export default function Modal({
         >
           <div
             style={backdropStyles}
-            className="container"
+            className="modal-container"
             onKeyDown={(e) => console.log(e)}
             onClick={(e) => e.stopPropagation()}
           >
