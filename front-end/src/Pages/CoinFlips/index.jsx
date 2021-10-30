@@ -9,6 +9,7 @@ import Deposit from 'Components/Deposit';
 import CreateFlip from './CreateFlip';
 import CoinFlip from './CoinFlip';
 import Chat from 'Components/Chat';
+import PrivateLobby from 'Components/PrivateLobby';
 
 export default function CoinFlips() {
   const [activeCoinFlips, setActiveCoinFlips] = useState([]);
@@ -43,44 +44,47 @@ export default function CoinFlips() {
   }, []);
 
   return (
-    <div id="coin-flips">
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <div style={{ flex: '2.5' }}>
-          <Deposit />
-          <div className="coin-flips-wrapper">
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                textAlign: 'center',
-                justifyContent: 'center',
-                marginBottom: 20
-              }}
-            >
-              <h2 style={{ color: 'var(--main-font-color)' }}>
-                Active coin flips
-              </h2>
-              <CreateFlip setActiveCoinFlips={setActiveCoinFlips} />
+    <>
+      <div id="coin-flips">
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ flex: '2.5' }}>
+            <Deposit />
+            <div className="coin-flips-wrapper">
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 20
+                }}
+              >
+                <h2 style={{ color: 'var(--main-font-color)' }}>
+                  Active coin flips
+                </h2>
+                <CreateFlip setActiveCoinFlips={setActiveCoinFlips} />
+              </div>
+              {loading && <p>Loading coin flips...</p>}
+              {!loading && activeCoinFlips.length === 0 ? (
+                <p style={{ textAlign: 'center' }}>
+                  There are currently 0 active coin flips. Create the first flip
+                  for others to see!
+                </p>
+              ) : (
+                activeCoinFlips.map((flip) => (
+                  <CoinFlip
+                    key={flip._id}
+                    coinFlipEvent={coinFlipsEvents[flip._id]}
+                    coinFlip={flip}
+                  />
+                ))
+              )}
             </div>
-            {loading && <p>Loading coin flips...</p>}
-            {!loading && activeCoinFlips.length === 0 ? (
-              <p style={{ textAlign: 'center' }}>
-                There are currently 0 active coin flips. Create the first flip
-                for others to see!
-              </p>
-            ) : (
-              activeCoinFlips.map((flip) => (
-                <CoinFlip
-                  key={flip._id}
-                  coinFlipEvent={coinFlipsEvents[flip._id]}
-                  coinFlip={flip}
-                />
-              ))
-            )}
           </div>
+          <Chat />
         </div>
-        <Chat />
       </div>
-    </div>
+      <PrivateLobby coinFlipEvents={coinFlipsEvents} />
+    </>
   );
 }
