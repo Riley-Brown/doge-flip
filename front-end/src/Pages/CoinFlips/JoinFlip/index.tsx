@@ -11,10 +11,20 @@ import { updateAccount } from 'Actions';
 import { joinCoinFlip } from 'API';
 import { CoinFlipTypes } from '../CoinFlip';
 
-export default function JoinFlip({ coinFlip }: { coinFlip: CoinFlipTypes }) {
+import { ReactComponent as LockSvg } from 'Assets/lock.svg';
+
+export default function JoinFlip({
+  coinFlip,
+  isFromPrivateLink,
+  privateLobbyId
+}: {
+  coinFlip: CoinFlipTypes;
+  isFromPrivateLink?: boolean;
+  privateLobbyId?: string;
+}) {
   const [show, setShow] = useState(false);
   const [errorType, setErrorType] = useState<
-    'balanceError' | 'joinError' | 'walletError'
+    'balanceError' | 'joinError' | 'walletError' | 'privateLobbyAuthError'
   >();
 
   const dispatch = useDispatch();
@@ -25,6 +35,12 @@ export default function JoinFlip({ coinFlip }: { coinFlip: CoinFlipTypes }) {
   const [loading, setLoading] = useState(false);
 
   const handleJoinFlip = async () => {
+    if (coinFlip.isPrivateLobby && !privateLobbyId) {
+      setErrorType('privateLobbyAuthError');
+      setType('error');
+      return;
+    }
+
     setLoading(true);
 
     if (account.balance < coinFlip.dogeAmount) {
@@ -35,7 +51,8 @@ export default function JoinFlip({ coinFlip }: { coinFlip: CoinFlipTypes }) {
     }
 
     const join = await joinCoinFlip({
-      coinFlipId: coinFlip._id
+      coinFlipId: coinFlip._id,
+      privateLobbyId
     });
 
     if (join.type === 'ok') {
@@ -44,6 +61,10 @@ export default function JoinFlip({ coinFlip }: { coinFlip: CoinFlipTypes }) {
       setTimeout(() => setShow(false), 1000);
     } else {
       setType('error');
+
+      if (join.type === 'privateLobbyAuthError') {
+        setErrorType('privateLobbyAuthError');
+      }
     }
 
     setLoading(false);
@@ -61,8 +82,19 @@ export default function JoinFlip({ coinFlip }: { coinFlip: CoinFlipTypes }) {
 
   return (
     <>
-      <button onClick={() => setShow(true)} className="btn join">
-        Join flip
+      <button
+        disabled={(!isFromPrivateLink && coinFlip.isPrivateLobby) || false}
+        onClick={() => setShow(true)}
+        className="btn join"
+      >
+        {!isFromPrivateLink && coinFlip.isPrivateLobby ? (
+          <>
+            <LockSvg />
+            Private Flip
+          </>
+        ) : (
+          'Join Flip'
+        )}
       </button>
       {show && (
         <Portal id="join-flip-portal">
@@ -85,9 +117,13 @@ export default function JoinFlip({ coinFlip }: { coinFlip: CoinFlipTypes }) {
               textDecoration: 'none'
             }}
           >
-            {errorType === 'balanceError' ? (
+            {errorType === 'balanceError' && (
               <p>Not enough balance to enter this flip</p>
-            ) : (
+            )}
+            {errorType === 'privateLobbyAuthError' && (
+              <p>Not authorized to join this private coin flip</p>
+            )}
+            {!errorType && (
               <p>
                 Joining this flip will deduct{' '}
                 {coinFlip.dogeAmount.toLocaleString()} doge from your balance
