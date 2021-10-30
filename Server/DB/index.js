@@ -1,11 +1,8 @@
 import MongoDB from 'mongodb';
 
-export const ObjectId = MongoDB.ObjectID;
+export const ObjectId = MongoDB.ObjectId;
 
-/**
- * @type MongoDB.MongoClient
- */
-const client = MongoDB.MongoClient(process.env.MONGO_URI, {
+const client = new MongoDB.MongoClient(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
