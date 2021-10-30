@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import JoinFlip from '../JoinFlip';
+import './CoinFlip.scss';
 
 import Moment from 'react-moment';
 
 import dogeLogoHeads from 'Assets/doge-logo-heads.png';
 import dogeLogoTails from 'Assets/doge-logo-tails.png';
+
 import { useTypedSelector } from 'Reducers';
 
 import { useToasts } from 'react-toast-notifications';
@@ -31,6 +33,7 @@ type CoinFlipSharedTypes = {
   createdByUserId: string;
   creatorSide: FlipSide;
   dogeAmount: number;
+  isPrivateLobby: boolean | undefined;
 };
 
 interface ActiveTypes extends CoinFlipSharedTypes {
@@ -70,10 +73,14 @@ interface FinishedTypes extends CoinFlipSharedTypes {
 
 export default function CoinFlip({
   coinFlip,
-  coinFlipEvent
+  coinFlipEvent,
+  isFromPrivateLink,
+  privateLobbyId
 }: {
   coinFlip: CoinFlipTypes;
   coinFlipEvent: CoinFlipTypes;
+  isFromPrivateLink?: boolean;
+  privateLobbyId?: string;
 }) {
   const [coinFlipState, setCoinFlipState] = useState(coinFlip);
   const account = useTypedSelector((state) => state.account);
@@ -84,6 +91,7 @@ export default function CoinFlip({
   useEffect(() => {
     if (coinFlipEvent) {
       if (
+        !isFromPrivateLink &&
         coinFlipEvent.status === 'finished' &&
         coinFlipEvent.winnerId === account.userId
       ) {
@@ -101,6 +109,7 @@ export default function CoinFlip({
           })
         );
       }
+
       setCoinFlipState({ ...coinFlipState, ...coinFlipEvent });
     }
   }, [coinFlipEvent]);
@@ -210,7 +219,11 @@ export default function CoinFlip({
         </div>
       </div>
       {coinFlipState.status === 'active' && (
-        <JoinFlip coinFlip={coinFlipState} />
+        <JoinFlip
+          isFromPrivateLink={isFromPrivateLink}
+          privateLobbyId={privateLobbyId}
+          coinFlip={coinFlipState}
+        />
       )}
     </div>
   );
