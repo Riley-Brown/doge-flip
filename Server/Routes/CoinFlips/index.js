@@ -119,11 +119,17 @@ router.post('/create', requireUserAuth, async (req, res) => {
 });
 
 router.get('/active', async (req, res) => {
+  const resultsPerPage = 50;
+  const { page = 0 } = req.query;
+
   try {
     const activeCoinFlipsCollection = getActiveCoinFlipsCollection();
     const activeCoinFlips = await activeCoinFlipsCollection
       .find({})
       .project({ privateLobbyId: 0 })
+      .sort({ createdAt: -1 })
+      .skip(resultsPerPage * page)
+      .limit(resultsPerPage)
       .toArray();
 
     res.send({ type: 'ok', data: activeCoinFlips });

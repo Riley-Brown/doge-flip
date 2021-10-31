@@ -1,7 +1,7 @@
 import { API_ROOT } from './root';
 
-export async function getActiveCoinFlips() {
-  const res = await fetch(`${API_ROOT}/coin-flips/active`);
+export async function getActiveCoinFlips(pagination = 0) {
+  const res = await fetch(`${API_ROOT}/coin-flips/active?page=${pagination}`);
   const json = await res.json();
   return json;
 }
