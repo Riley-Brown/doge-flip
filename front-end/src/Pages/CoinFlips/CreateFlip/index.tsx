@@ -82,7 +82,7 @@ export default function CreateFlip({
           </>,
           {
             appearance: 'success',
-            autoDismiss: true
+            autoDismiss: isPrivateLobby ? false : true
           }
         );
 
