@@ -10,6 +10,8 @@ import {
 
 import { requireUserAuth } from '../../Middleware/authMiddleware';
 
+import { v4 as uuid } from 'uuid';
+
 const coinFlipEvents = new EventEmitter();
 
 const router = Router();
@@ -32,7 +34,7 @@ function generateRandomNumber() {
 router.post('/create', requireUserAuth, async (req, res) => {
   try {
     const timestamp = Math.floor(Date.now() / 1000);
-    const { dogeAmount, side } = req.body;
+    const { dogeAmount, side, isPrivateLobby = false } = req.body;
 
     const { userId } = res.locals.userTokenObject;
 
@@ -43,7 +45,8 @@ router.post('/create', requireUserAuth, async (req, res) => {
       typeof dogeAmount !== 'number' ||
       dogeAmount < 0 ||
       !side ||
-      (side !== 'heads' && side !== 'tails')
+      (side !== 'heads' && side !== 'tails') ||
+      typeof isPrivateLobby !== 'boolean'
     ) {
       return res
         .status(400)
@@ -69,11 +72,12 @@ router.post('/create', requireUserAuth, async (req, res) => {
     }
 
     const coinFlipData = {
-      createdByDisplayName: userWallet.displayName,
       createdAt: timestamp,
+      createdByDisplayName: userWallet.displayName,
       createdByUserId: userId,
       creatorSide: side,
       dogeAmount,
+      isPrivateLobby,
       status: 'active'
     };
 
@@ -83,14 +87,31 @@ router.post('/create', requireUserAuth, async (req, res) => {
       { returnDocument: 'after' }
     );
 
-    await activeCoinFlipsCollection.insertOne(coinFlipData);
+    let privateLobbyId;
 
-    coinFlipEvents.emit('coinFlipCreated', coinFlipData);
+    if (isPrivateLobby) {
+      privateLobbyId = uuid();
+    }
+
+    const create = await activeCoinFlipsCollection.insertOne({
+      ...coinFlipData,
+      privateLobbyId
+    });
+
+    coinFlipEvents.emit('coinFlipCreated', {
+      ...coinFlipData,
+      _id: create.insertedId.toString()
+    });
 
     res.send({
       type: 'ok',
       message: 'Successfully created coin flip',
-      data: { coinFlipData, balance: updatedWallet.value.balance }
+      data: {
+        _id: create.insertedId.toString(),
+        balance: updatedWallet.value.balance,
+        coinFlipData,
+        privateLobbyId
+      }
     });
   } catch (err) {
     console.log(err);
@@ -100,7 +121,10 @@ router.post('/create', requireUserAuth, async (req, res) => {
 router.get('/active', async (req, res) => {
   try {
     const activeCoinFlipsCollection = getActiveCoinFlipsCollection();
-    const activeCoinFlips = await activeCoinFlipsCollection.find({}).toArray();
+    const activeCoinFlips = await activeCoinFlipsCollection
+      .find({})
+      .project({ privateLobbyId: 0 })
+      .toArray();
 
     res.send({ type: 'ok', data: activeCoinFlips });
   } catch (err) {
@@ -108,15 +132,34 @@ router.get('/active', async (req, res) => {
   }
 });
 
+router.get('/coin-flip/:coinFlipId', async (req, res) => {
+  const { coinFlipId } = req.params;
+
+  const activeCoinFlipsCollection = getActiveCoinFlipsCollection();
+  const activeCoinFlip = await activeCoinFlipsCollection.findOne(
+    { _id: ObjectId(coinFlipId) },
+    { projection: { privateLobbyId: 0 } }
+  );
+
+  if (!activeCoinFlip) {
+    return res
+      .status(400)
+      .json({ type: 'error', message: 'Coin flip does not exist' });
+  }
+
+  return res.json({ type: 'ok', data: activeCoinFlip });
+});
+
 router.post('/join', requireUserAuth, async (req, res) => {
-  const { coinFlipId } = req.body;
+  const { coinFlipId, privateLobbyId } = req.body;
   const { userId } = res.locals.userTokenObject;
 
   if (
     !coinFlipId ||
     !userId ||
     typeof coinFlipId !== 'string' ||
-    typeof userId !== 'string'
+    typeof userId !== 'string' ||
+    (privateLobbyId && typeof privateLobbyId !== 'string')
   ) {
     return res
       .status(400)
@@ -139,6 +182,15 @@ router.post('/join', requireUserAuth, async (req, res) => {
       type: 'error',
       message: 'Coin flip is in progress or has already ended'
     });
+  }
+
+  if (activeCoinFlip.isPrivateLobby) {
+    if (activeCoinFlip.privateLobbyId !== privateLobbyId) {
+      return res.status(403).json({
+        type: 'privateLobbyAuthError',
+        message: 'Not authorized to join this private coin flip'
+      });
+    }
   }
 
   const walletsCollection = getWalletsCollection();

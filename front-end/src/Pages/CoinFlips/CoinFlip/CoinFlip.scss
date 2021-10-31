@@ -1,0 +1,117 @@
+.coin-flip {
+  display: flex;
+  justify-content: space-between;
+  background: var(--secondary);
+  color: #fff;
+  padding: 20px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+  @media (max-width: 850px) {
+    flex-direction: column;
+  }
+  .sides-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 1;
+    @media (max-width: 850px) {
+      margin: 20px 0;
+    }
+    @media (max-width: 550px) {
+      flex-direction: column;
+      justify-content: center;
+    }
+    .side {
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      @media (max-width: 550px) {
+        align-items: center;
+      }
+    }
+    .vs-wrapper {
+      margin: 0 20px;
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      @media (max-width: 550px) {
+        justify-content: center;
+        margin: 20px auto;
+      }
+    }
+  }
+  h3,
+  p {
+    margin: 0;
+    font-weight: normal;
+  }
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+  img {
+    width: 100px;
+    height: 100px;
+  }
+  .flip-info {
+    display: flex;
+    .amount-date {
+      display: flex;
+      flex-direction: column;
+      align-self: stretch;
+      justify-content: center;
+      margin-right: 20px;
+      flex-wrap: wrap;
+      @media (max-width: 850px) {
+        flex-direction: row;
+        justify-content: space-between;
+        flex-grow: 1;
+        margin: 0;
+        h3 {
+          font-size: 1rem;
+          &:first-of-type {
+            margin-right: 10px;
+          }
+        }
+      }
+    }
+  }
+  .sides-wrapper {
+    .side {
+      padding: 5px;
+      border-radius: 4px;
+      &[data-winner='true'] {
+        background: var(--success-darker);
+      }
+      &[data-loser='true'] {
+        background: var(--danger);
+      }
+      h4 {
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+  .join {
+    background: var(--primary);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+    color: #fff;
+    align-self: center;
+    padding: 10px;
+    min-width: 150px;
+    margin-left: 20px;
+    svg {
+      vertical-align: sub;
+      margin-right: 5px;
+    }
+  }
+  .finished-result {
+    .winner {
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}

@@ -14,6 +14,7 @@ import dogeLogoTails from 'Assets/doge-logo-tails.png';
 import './CreateFlip.scss';
 import { useTypedSelector } from 'Reducers';
 import { updateAccount } from 'Actions';
+import { copyToClipboardHelper } from 'Hooks/copyPollyFill';
 
 export default function CreateFlip({
   setActiveCoinFlips
@@ -22,6 +23,7 @@ export default function CreateFlip({
 }) {
   const [show, setShow] = useState(false);
   const [side, setSide] = useState<'heads' | 'tails'>();
+  const [isPrivateLobby, setIsPrivateLobby] = useState(false);
 
   const { addToast } = useToasts();
 
@@ -50,31 +52,45 @@ export default function CreateFlip({
 
   const handleResetState = () => {
     setSide(undefined);
+    setIsPrivateLobby(false);
     setValue('side', '');
     setValue('dogeAmount', null);
     clearErrors();
   };
 
   const onSubmit = handleSubmit(async (data) => {
-    console.log(data);
-
     try {
       setLoading(true);
       const create = await createCoinFlip({
         dogeAmount: Number(data.dogeAmount),
-        side
+        side,
+        isPrivateLobby
       });
 
       if (create.type === 'ok') {
         dispatch(updateAccount({ balance: create.data.balance }));
 
         addToast(
-          <h2 style={{ margin: 0 }}>Successfully created coin flip!</h2>,
+          <>
+            <h2 style={{ margin: 0 }}>Successfully created coin flip!</h2>
+            {create.data.privateLobbyId && (
+              <p>
+                A shareable link has been copied to your clipboard, anyone with
+                this link will be able to join this flip.
+              </p>
+            )}
+          </>,
           {
             appearance: 'success',
             autoDismiss: true
           }
         );
+
+        if (create.data.privateLobbyId) {
+          copyToClipboardHelper(
+            `${window.location.origin}?flipId=${create.data._id}&privateLobbyId=${create.data.privateLobbyId}`
+          );
+        }
 
         setShow(false);
         setSide(undefined);
@@ -128,6 +144,22 @@ export default function CreateFlip({
                 {errors.dogeAmount.message}
               </small>
             )}
+          </div>
+          <div className="input-wrapper">
+            <label htmlFor="private-lobby">
+              Private Lobby
+              <input
+                defaultChecked={false}
+                onChange={(e) => setIsPrivateLobby(e.target.checked)}
+                id="private-lobby"
+                type="checkbox"
+                placeholder="Private Lobby"
+              />
+            </label>
+            <small>
+              An opponent will only be able to join this flip with the link
+              generated after creation
+            </small>
           </div>
           <p style={{ textAlign: 'center' }}>Choose a side</p>
           {errors.side && (

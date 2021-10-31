@@ -1,0 +1,40 @@
+#private-flip-modal {
+  .modal-container {
+    padding: 20px;
+  }
+  .coin-flip {
+    flex-direction: column;
+    .sides-wrapper {
+      margin: 20px 0;
+      flex-direction: column;
+      justify-content: center;
+      .side {
+        align-items: center;
+      }
+      .vs-wrapper {
+        justify-content: center;
+        margin: 20px auto;
+      }
+    }
+    .flip-info {
+      .amount-date {
+        flex-direction: row;
+        justify-content: space-between;
+        flex-grow: 1;
+        margin: 0;
+        h3 {
+          font-size: 1rem;
+          &:first-of-type {
+            margin-right: 10px;
+          }
+        }
+      }
+    }
+  }
+  .title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+}
