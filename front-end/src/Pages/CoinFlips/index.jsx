@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import './CoinFlips.scss';
 
@@ -10,19 +10,21 @@ import CreateFlip from './CreateFlip';
 import CoinFlip from './CoinFlip';
 import Chat from 'Components/Chat';
 import PrivateLobby from 'Components/PrivateLobby';
+import SpinnerButton from 'Components/SpinnerButton';
 
 export default function CoinFlips() {
   const [activeCoinFlips, setActiveCoinFlips] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const pagination = useRef(0);
+
   const [coinFlipsEvents, setCoinFlipsEvents] = useState({});
 
   useEffect(() => {
-    getActiveCoinFlips().then((res) => {
-      const activeCoinFlips = res.data.reverse();
-      setActiveCoinFlips(activeCoinFlips);
-      setLoading(false);
-
+    getCoinFlips().then(() => {
       const events = new EventSource(`${API_ROOT}/coin-flips/events`);
 
       events.addEventListener('message', (message) => {
@@ -42,6 +44,27 @@ export default function CoinFlips() {
       });
     });
   }, []);
+
+  const getCoinFlips = async ({ page, concat } = {}) => {
+    setLoadingMore(true);
+
+    const res = await getActiveCoinFlips(page);
+
+    if (res.data.length < 50) {
+      setHasMore(false);
+    } else {
+      setHasMore(true);
+    }
+
+    if (concat) {
+      setActiveCoinFlips((prev) => prev.concat(res.data));
+    } else {
+      setActiveCoinFlips(res.data);
+    }
+
+    setLoading(false);
+    setLoadingMore(false);
+  };
 
   return (
     <>
@@ -78,6 +101,18 @@ export default function CoinFlips() {
                     coinFlip={flip}
                   />
                 ))
+              )}
+              {hasMore && (
+                <SpinnerButton
+                  className="btn primary load-more-btn"
+                  onClick={() => {
+                    pagination.current = pagination.current + 1;
+                    getCoinFlips({ page: pagination.current, concat: true });
+                  }}
+                  loading={loadingMore}
+                >
+                  Load More
+                </SpinnerButton>
               )}
             </div>
           </div>
