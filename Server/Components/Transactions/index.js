@@ -1,21 +1,22 @@
-import CoinKey from 'coinkey';
 import coinInfo from 'coininfo';
-import DogeCoin from 'dogecoinjs';
 import bitcoin from 'bitcoinjs-lib';
 
-import {
-  getBalance,
-  getUnspentTx,
-  isTxOutputSpent,
-  sendTransaction
-} from '../../API';
+import { getUnspentTx, sendTransaction, APP_MODE } from '../../API';
+
+let dogeInfo;
+
+if (APP_MODE === 'live') {
+  dogeInfo = { ...coinInfo.dogecoin.main.toBitcoinJS() };
+} else {
+  dogeInfo = { ...coinInfo.dogecoin.test.toBitcoinJS() };
+}
 
 const dogeNetwork = {
-  ...coinInfo.dogecoin.test.toBitcoinJS(),
+  ...dogeInfo,
   bip32: {
     private: 0x02fac398,
-    public: 0x02facafd
-  }
+    public: 0x02facafd,
+  },
 };
 
 export const toSatoshis = (amount) => Math.floor(amount * 100000000);
@@ -23,16 +24,14 @@ export const toSatoshis = (amount) => Math.floor(amount * 100000000);
 export async function handleSendDogeCoin({
   receiverAddress,
   dogeCoinsToSend,
-  network,
   privateKey,
-  sourceAddress
+  sourceAddress,
 }) {
   try {
     const tx = new bitcoin.TransactionBuilder(dogeNetwork);
 
     const unspentTx = await getUnspentTx({
       pubAddress: sourceAddress,
-      network
     });
 
     let totalSatoshisAvailable = 0;
@@ -53,8 +52,6 @@ export async function handleSendDogeCoin({
     const fee = toSatoshis(1);
     const amountToSatoshis = toSatoshis(dogeCoinsToSend) - fee;
     const changeAmount = totalSatoshisAvailable - amountToSatoshis - fee;
-
-    console.log({ totalSatoshisAvailable, amountToSatoshis, changeAmount });
 
     if (totalSatoshisAvailable - amountToSatoshis - fee < 0) {
       console.error('Not enough balance to cover transaction'.red);
@@ -80,7 +77,6 @@ export async function handleSendDogeCoin({
 
     const send = await sendTransaction({
       txHex,
-      network
     });
 
     console.log({ send });
