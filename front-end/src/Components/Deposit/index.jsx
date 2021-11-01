@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
-import { getWalletData, syncWalletData } from 'API';
+import { APP_MODE, getWalletData, syncWalletData } from 'API';
 
 import QRCode from 'qrcode.react';
 
@@ -18,6 +18,8 @@ import SecureAccount from './SecureAccount';
 import Withdraw from './Withdraw';
 
 import dogeLogo from 'Assets/doge-logo.png';
+import { ReactComponent as CopySvg } from 'Assets/clipboard.svg';
+import useCopyToClipboard from 'Hooks/useCopyToClipboard';
 
 const isDarkMode = JSON.parse(localStorage.getItem('darkMode'));
 
@@ -26,6 +28,8 @@ export default function Deposit() {
 
   const [darkMode, setDarkMode] = useState(isDarkMode);
   const [loading, setLoading] = useState(true);
+
+  const dogeNetwork = useRef(APP_MODE === 'live' ? 'doge' : 'dogetest');
 
   const dispatch = useDispatch();
   const { addToast, removeToast } = useToasts();
@@ -69,9 +73,8 @@ export default function Deposit() {
               JSON.stringify({
                 event: 'pusher:subscribe',
                 data: {
-                  // todo: make dogetest dynamic based on env
-                  channel: `confirm_tx_dogetest_${pendingDeposit.txId}`
-                }
+                  channel: `confirm_tx_${dogeNetwork.current}_${pendingDeposit.txId}`,
+                },
               })
             );
 
@@ -81,6 +84,7 @@ export default function Deposit() {
                 <p>
                   Amount: <strong>{pendingDeposit.value}</strong>
                 </p>
+                <p>Tranaction id: {pendingDeposit.txId} </p>
                 <p>
                   <p>Waiting to be confirmed on doge blockchain</p>
                 </p>
@@ -96,7 +100,7 @@ export default function Deposit() {
         socket.send(
           JSON.stringify({
             event: 'pusher:ping',
-            data: {}
+            data: {},
           })
         );
       }, 120000);
@@ -118,9 +122,8 @@ export default function Deposit() {
             JSON.stringify({
               event: 'pusher:subscribe',
               data: {
-                // todo: make dogetest dynamic based on env
-                channel: `address_dogetest_${publicDogeKey}`
-              }
+                channel: `address_${dogeNetwork.current}_${publicDogeKey}`,
+              },
             })
           );
         }
@@ -136,9 +139,7 @@ export default function Deposit() {
               <p>
                 Amount: <strong>{parsedData.value.value_received}</strong>
               </p>
-              <p>
-                <p>Waiting to be confirmed on doge blockchain</p>
-              </p>
+              <p>Waiting to be confirmed on doge blockchain</p>
             </div>,
             { appearance: 'warning', id: parsedData.value.tx.txid }
           );
@@ -147,9 +148,8 @@ export default function Deposit() {
             JSON.stringify({
               event: 'pusher:subscribe',
               data: {
-                // todo: make dogetest dynamic based on env
-                channel: `confirm_tx_dogetest_${parsedData.value.tx.txid}`
-              }
+                channel: `confirm_tx_${dogeNetwork.current}_${parsedData.value.tx.txid}`,
+              },
             })
           );
         }
@@ -178,14 +178,18 @@ export default function Deposit() {
             JSON.stringify({
               event: 'pusher:unsubscribe',
               data: {
-                channel: `confirm_tx_dogetest_${txId}`
-              }
+                channel: `confirm_tx_${dogeNetwork.current}_${txId}`,
+              },
             })
           );
         }
       };
     }
   }, [publicDogeKey]);
+
+  const [copyToClipboard] = useCopyToClipboard({
+    copiedTimeout: 2000,
+  });
 
   return (
     <div className="deposit">
@@ -195,6 +199,23 @@ export default function Deposit() {
             <h1>Deposit doge</h1>
             <p>
               Deposits can be made to <br /> {publicDogeKey}
+              <button
+                title="Copy deposit address"
+                className="btn"
+                onClick={() => {
+                  copyToClipboard(publicDogeKey);
+                  addToast(
+                    <div style={{ color: '#222' }}>
+                      <h2 style={{ marginTop: 0 }}>
+                        Deposit address copied to clipboard
+                      </h2>
+                    </div>,
+                    { appearance: 'success', autoDismiss: true }
+                  );
+                }}
+              >
+                <CopySvg />
+              </button>
             </p>
           </div>
         </div>
