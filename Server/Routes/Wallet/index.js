@@ -1,61 +1,28 @@
 import { Router } from 'express';
-
-import coinInfo from 'coininfo';
-import CoinKey from 'coinkey';
+import { v4 as uuid } from 'uuid';
 
 import { getWalletsCollection } from '../../DB';
-
-import {
-  DOGE_NETWORK,
-  getUnspentTx,
-  MAIN_WALLET_PUBLIC_KEY,
-  APP_MODE,
-} from '../../API';
+import { getUnspentTx, MAIN_WALLET_PUBLIC_KEY } from '../../API';
 
 import { handleSendDogeCoin } from '../../Components/Transactions';
 
-import { v4 as uuid } from 'uuid';
+import {
+  requireUserAuth,
+  setUserTokenFromCookie
+} from '../../Middleware/authMiddleware';
 
-import { createToken } from '../../Auth';
+import { RecoverWalletValidator } from '../../Middleware/Validators/Wallet';
+
+import {
+  handlePendingDeposits,
+  handleCreateWallet
+} from '../../Components/Wallet';
+
+import { handleCreateUserToken } from '../../Auth';
 
 const router = Router();
 
-function handleCreateUserToken({ userId, publicAddress, res }) {
-  const token = createToken({ userId, publicAddress });
-
-  res.cookie('userToken', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'development' ? false : true,
-    sameSite: process.env.NODE_ENV === 'development' ? 'lax' : 'None',
-    maxAge: 365 * 24 * 60 * 60 * 1000,
-  });
-}
-
-async function handleCreateWallet(res) {
-  const dogeNet = APP_MODE === 'live' ? 'DOGE' : 'DOGE-TEST';
-  const dogeVersions = coinInfo(dogeNet).versions;
-  const key = new CoinKey.createRandom(dogeVersions);
-
-  const userId = uuid();
-
-  handleCreateUserToken({ userId, publicAddress: key.publicAddress, res });
-
-  const walletsCollection = getWalletsCollection();
-
-  await walletsCollection.insertOne({
-    _id: userId,
-    publicAddress: key.publicAddress,
-    privateWif: key.privateWif,
-    privateHex: key.privateKey.toString('hex'),
-    balance: 50,
-    network: DOGE_NETWORK,
-    userId,
-  });
-
-  return { publicAddress: key.publicAddress, userId };
-}
-
-router.post('/update', async (req, res) => {
+router.post('/update', requireUserAuth, async (req, res) => {
   const { displayName } = req.body;
   const { publicAddress } = res.locals.userTokenObject;
 
@@ -82,7 +49,7 @@ router.post('/update', async (req, res) => {
   res.send({ type: 'ok' });
 });
 
-router.get('/', async (req, res) => {
+router.get('/', setUserTokenFromCookie, async (req, res) => {
   let { publicAddress } = res.locals.userTokenObject;
 
   // Generate and save wallet for first time users
@@ -103,19 +70,13 @@ router.get('/', async (req, res) => {
       isAdmin: data.isAdmin,
       network: data.network,
       publicAddress: data.publicAddress,
-      userId: data.userId,
-    },
+      userId: data.userId
+    }
   });
 });
 
-router.post('/sync-wallet', async (req, res) => {
+router.post('/sync-wallet', requireUserAuth, async (req, res) => {
   const { publicAddress } = res.locals.userTokenObject;
-
-  if (!publicAddress) {
-    return res
-      .status(403)
-      .json({ type: 'error', message: 'This wallet does not exist' });
-  }
 
   const walletsCollection = getWalletsCollection();
   const wallet = await walletsCollection.findOne({ publicAddress });
@@ -125,21 +86,12 @@ router.post('/sync-wallet', async (req, res) => {
   }
 
   const unspentTx = await getUnspentTx({
-    pubAddress: publicAddress,
+    pubAddress: publicAddress
   });
 
-  const pendingDeposits = [];
-
   if (unspentTx.status === 'success' && unspentTx.data.txs.length > 0) {
-    let totalUnspentValue = 0;
-    unspentTx.data.txs.forEach((element) => {
-      // prob would want to make sure there's more than 1 confirmation using real net
-      if (element.confirmations > 0) {
-        totalUnspentValue += Number(element.value);
-      } else {
-        pendingDeposits.push({ value: element.value, txId: element.txid });
-      }
-    });
+    const { totalUnspentValue, pendingDeposits } =
+      handlePendingDeposits(unspentTx);
 
     if (totalUnspentValue === 0) {
       return res.send({
@@ -150,8 +102,8 @@ router.post('/sync-wallet', async (req, res) => {
           network: wallet.network,
           pendingDeposits,
           publicAddress: wallet.publicAddress,
-          userId: wallet.userId,
-        },
+          userId: wallet.userId
+        }
       });
     }
 
@@ -159,14 +111,12 @@ router.post('/sync-wallet', async (req, res) => {
       dogeCoinsToSend: totalUnspentValue,
       receiverAddress: MAIN_WALLET_PUBLIC_KEY,
       sourceAddress: wallet.publicAddress,
-      privateKey: wallet.privateWif,
+      privateKey: wallet.privateWif
     });
 
     if (sendToMainWallet?.status === 'success') {
       const updateWallet = await walletsCollection.findOneAndUpdate(
-        {
-          publicAddress,
-        },
+        { publicAddress },
         { $inc: { balance: totalUnspentValue } },
         { returnDocument: 'after' }
       );
@@ -179,8 +129,8 @@ router.post('/sync-wallet', async (req, res) => {
           network: updateWallet.value.network,
           pendingDeposits,
           publicAddress: updateWallet.value.publicAddress,
-          userId: updateWallet.value.userId,
-        },
+          userId: updateWallet.value.userId
+        }
       });
     }
   }
@@ -191,24 +141,15 @@ router.post('/sync-wallet', async (req, res) => {
       balance: wallet.balance,
       displayName: wallet.displayName,
       network: wallet.network,
-      pendingDeposits,
+      pendingDeposits: [],
       publicAddress: wallet.publicAddress,
-      userId: wallet.userId,
-    },
+      userId: wallet.userId
+    }
   });
 });
 
-router.post('/recover', async (req, res) => {
+router.post('/recover', RecoverWalletValidator, async (req, res) => {
   const { publicAddress, recoveryKey } = req.body;
-
-  if (
-    !publicAddress ||
-    !recoveryKey ||
-    typeof publicAddress !== 'string' ||
-    typeof recoveryKey !== 'string'
-  ) {
-    return res.status(400).json({ type: 'error', message: 'Invalid params' });
-  }
 
   const walletsCollection = getWalletsCollection();
   const wallet = await walletsCollection.findOne({ publicAddress });
@@ -216,7 +157,7 @@ router.post('/recover', async (req, res) => {
   if (!wallet) {
     return res.status(400).json({
       type: 'error',
-      message: 'Invalid public address/recovery key combination',
+      message: 'Invalid public address/recovery key combination'
     });
   }
 
@@ -224,7 +165,7 @@ router.post('/recover', async (req, res) => {
     handleCreateUserToken({
       userId: wallet.userId,
       publicAddress: wallet.publicAddress,
-      res,
+      res
     });
 
     return res.send({
@@ -235,14 +176,14 @@ router.post('/recover', async (req, res) => {
         displayName: wallet.displayName,
         network: wallet.network,
         publicAddress: wallet.publicAddress,
-        userId: wallet.userId,
-      },
+        userId: wallet.userId
+      }
     });
   }
 
   return res.status(400).json({
     type: 'error',
-    message: 'Invalid public address/recovery key combination',
+    message: 'Invalid public address/recovery key combination'
   });
 });
 
@@ -259,7 +200,7 @@ router.get('/recovery-key', async (req, res) => {
   if (!wallet) {
     return res.status(400).json({
       type: 'error',
-      message: 'Wallet does not exist',
+      message: 'Wallet does not exist'
     });
   }
 
@@ -273,12 +214,12 @@ router.get('/recovery-key', async (req, res) => {
 
     return res.json({
       type: 'ok',
-      data: { recoveryKey },
+      data: { recoveryKey }
     });
   } else {
     return res.json({
       type: 'ok',
-      data: { recoveryKey: wallet.recoveryKey },
+      data: { recoveryKey: wallet.recoveryKey }
     });
   }
 });
@@ -296,7 +237,7 @@ router.post('/reset-recovery-key', async (req, res) => {
   if (!wallet) {
     return res.status(400).json({
       type: 'error',
-      message: 'Wallet does not exist',
+      message: 'Wallet does not exist'
     });
   }
 
@@ -309,7 +250,7 @@ router.post('/reset-recovery-key', async (req, res) => {
 
   return res.json({
     type: 'ok',
-    data: { recoveryKey },
+    data: { recoveryKey }
   });
 });
 

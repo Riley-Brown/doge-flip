@@ -50,3 +50,15 @@ export const handleVerifyAdminToken = async (token) => {
     return false;
   }
 };
+
+export function handleCreateUserToken({ userId, publicAddress, res }) {
+  const token = createToken({ userId, publicAddress });
+  const isDev = process.env.NODE_ENV === 'development';
+
+  res.cookie('userToken', token, {
+    httpOnly: true,
+    secure: isDev ? false : true,
+    sameSite: isDev ? 'lax' : 'None',
+    maxAge: 365 * 24 * 60 * 60 * 1000
+  });
+}
