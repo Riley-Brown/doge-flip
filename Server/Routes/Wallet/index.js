@@ -1,24 +1,19 @@
 import { Router } from 'express';
 import { v4 as uuid } from 'uuid';
 
-import { getWalletsCollection } from '../../DB';
-import { getUnspentTx, MAIN_WALLET_PUBLIC_KEY } from '../../API';
+import { getWalletsCollection } from 'DB';
+import { getUnspentTx, MAIN_WALLET_PUBLIC_KEY } from 'API';
 
-import { handleSendDogeCoin } from '../../Components/Transactions';
+import { handleSendDogeCoin } from 'Components/Transactions';
+import { handlePendingDeposits, handleCreateWallet } from 'Components/Wallet';
 
+import { RecoverWalletValidator } from 'Middleware/Validators/Wallet';
 import {
   requireUserAuth,
-  setUserTokenFromCookie
-} from '../../Middleware/authMiddleware';
+  setUserTokenFromCookie,
+} from 'Middleware/authMiddleware';
 
-import { RecoverWalletValidator } from '../../Middleware/Validators/Wallet';
-
-import {
-  handlePendingDeposits,
-  handleCreateWallet
-} from '../../Components/Wallet';
-
-import { handleCreateUserToken } from '../../Auth';
+import { handleCreateUserToken } from 'Auth';
 
 const router = Router();
 
@@ -70,8 +65,8 @@ router.get('/', setUserTokenFromCookie, async (req, res) => {
       isAdmin: data.isAdmin,
       network: data.network,
       publicAddress: data.publicAddress,
-      userId: data.userId
-    }
+      userId: data.userId,
+    },
   });
 });
 
@@ -85,9 +80,7 @@ router.post('/sync-wallet', requireUserAuth, async (req, res) => {
     return res.send({ type: 'error', message: 'This wallet does not exist' });
   }
 
-  const unspentTx = await getUnspentTx({
-    pubAddress: publicAddress
-  });
+  const unspentTx = await getUnspentTx(publicAddress);
 
   if (unspentTx.status === 'success' && unspentTx.data.txs.length > 0) {
     const { totalUnspentValue, pendingDeposits } =
@@ -102,8 +95,8 @@ router.post('/sync-wallet', requireUserAuth, async (req, res) => {
           network: wallet.network,
           pendingDeposits,
           publicAddress: wallet.publicAddress,
-          userId: wallet.userId
-        }
+          userId: wallet.userId,
+        },
       });
     }
 
@@ -111,7 +104,7 @@ router.post('/sync-wallet', requireUserAuth, async (req, res) => {
       dogeCoinsToSend: totalUnspentValue,
       receiverAddress: MAIN_WALLET_PUBLIC_KEY,
       sourceAddress: wallet.publicAddress,
-      privateKey: wallet.privateWif
+      privateKey: wallet.privateWif,
     });
 
     if (sendToMainWallet?.status === 'success') {
@@ -129,8 +122,8 @@ router.post('/sync-wallet', requireUserAuth, async (req, res) => {
           network: updateWallet.value.network,
           pendingDeposits,
           publicAddress: updateWallet.value.publicAddress,
-          userId: updateWallet.value.userId
-        }
+          userId: updateWallet.value.userId,
+        },
       });
     }
   }
@@ -143,8 +136,8 @@ router.post('/sync-wallet', requireUserAuth, async (req, res) => {
       network: wallet.network,
       pendingDeposits: [],
       publicAddress: wallet.publicAddress,
-      userId: wallet.userId
-    }
+      userId: wallet.userId,
+    },
   });
 });
 
@@ -157,7 +150,7 @@ router.post('/recover', RecoverWalletValidator, async (req, res) => {
   if (!wallet) {
     return res.status(400).json({
       type: 'error',
-      message: 'Invalid public address/recovery key combination'
+      message: 'Invalid public address/recovery key combination',
     });
   }
 
@@ -165,7 +158,7 @@ router.post('/recover', RecoverWalletValidator, async (req, res) => {
     handleCreateUserToken({
       userId: wallet.userId,
       publicAddress: wallet.publicAddress,
-      res
+      res,
     });
 
     return res.send({
@@ -176,14 +169,14 @@ router.post('/recover', RecoverWalletValidator, async (req, res) => {
         displayName: wallet.displayName,
         network: wallet.network,
         publicAddress: wallet.publicAddress,
-        userId: wallet.userId
-      }
+        userId: wallet.userId,
+      },
     });
   }
 
   return res.status(400).json({
     type: 'error',
-    message: 'Invalid public address/recovery key combination'
+    message: 'Invalid public address/recovery key combination',
   });
 });
 
@@ -200,7 +193,7 @@ router.get('/recovery-key', async (req, res) => {
   if (!wallet) {
     return res.status(400).json({
       type: 'error',
-      message: 'Wallet does not exist'
+      message: 'Wallet does not exist',
     });
   }
 
@@ -214,12 +207,12 @@ router.get('/recovery-key', async (req, res) => {
 
     return res.json({
       type: 'ok',
-      data: { recoveryKey }
+      data: { recoveryKey },
     });
   } else {
     return res.json({
       type: 'ok',
-      data: { recoveryKey: wallet.recoveryKey }
+      data: { recoveryKey: wallet.recoveryKey },
     });
   }
 });
@@ -237,7 +230,7 @@ router.post('/reset-recovery-key', async (req, res) => {
   if (!wallet) {
     return res.status(400).json({
       type: 'error',
-      message: 'Wallet does not exist'
+      message: 'Wallet does not exist',
     });
   }
 
@@ -250,7 +243,7 @@ router.post('/reset-recovery-key', async (req, res) => {
 
   return res.json({
     type: 'ok',
-    data: { recoveryKey }
+    data: { recoveryKey },
   });
 });
 
