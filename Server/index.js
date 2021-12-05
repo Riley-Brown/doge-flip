@@ -36,7 +36,7 @@ app.use(cors(corsOptions));
 app.use(morgan('dev'));
 app.use(cookieParser());
 
-app.use('/wallet', requireUserAuth, Wallet);
+app.use('/wallet', Wallet);
 app.use('/transactions', requireUserAuth, Transactions);
 app.use('/coin-flips', CoinFlips);
 app.use('/chat', Chat);
