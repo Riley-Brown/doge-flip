@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { validationResult } from 'express-validator';
+import { v4 as uuid } from 'uuid';
 import Provable from 'provable';
 import EventEmitter from 'events';
 
@@ -10,7 +12,10 @@ import {
 
 import { requireUserAuth } from '../../Middleware/authMiddleware';
 
-import { v4 as uuid } from 'uuid';
+import {
+  CreateFlipValidator,
+  JoinFlipValidator
+} from '../../Middleware/Validators/CoinFlips';
 
 const coinFlipEvents = new EventEmitter();
 
@@ -31,92 +36,89 @@ function generateRandomNumber() {
   return { float, hash, int, bool };
 }
 
-router.post('/create', requireUserAuth, async (req, res) => {
-  try {
-    const timestamp = Math.floor(Date.now() / 1000);
-    const { dogeAmount, side, isPrivateLobby = false } = req.body;
-
-    const { userId } = res.locals.userTokenObject;
-
-    if (
-      !userId ||
-      typeof userId !== 'string' ||
-      !dogeAmount ||
-      typeof dogeAmount !== 'number' ||
-      dogeAmount < 0 ||
-      !side ||
-      (side !== 'heads' && side !== 'tails') ||
-      typeof isPrivateLobby !== 'boolean'
-    ) {
+router.post(
+  '/create',
+  requireUserAuth,
+  CreateFlipValidator,
+  async (req, res) => {
+    if (!validationResult(req).isEmpty()) {
       return res
         .status(400)
-        .json({ type: 'error', message: 'Invalid parameters' });
+        .json({ type: 'error', message: 'Invalid request' });
     }
 
-    const activeCoinFlipsCollection = getActiveCoinFlipsCollection();
-    const walletsCollection = getWalletsCollection();
+    try {
+      const { userId } = res.locals.userTokenObject;
 
-    const userWallet = await walletsCollection.findOne({ _id: userId });
+      const timestamp = Math.floor(Date.now() / 1000);
+      const { dogeAmount, side, isPrivateLobby = false } = req.body;
 
-    if (!userWallet) {
-      return res
-        .status(400)
-        .json({ type: 'error', message: 'Wallet for user id does not exist' });
-    }
+      const activeCoinFlipsCollection = getActiveCoinFlipsCollection();
+      const walletsCollection = getWalletsCollection();
 
-    if (userWallet.balance < dogeAmount) {
-      return res.status(400).json({
-        type: 'balanceError',
-        message: 'Doge amount cannot be greater than current balance'
-      });
-    }
+      const userWallet = await walletsCollection.findOne({ _id: userId });
 
-    const coinFlipData = {
-      createdAt: timestamp,
-      createdByDisplayName: userWallet.displayName,
-      createdByUserId: userId,
-      creatorSide: side,
-      dogeAmount,
-      isPrivateLobby,
-      status: 'active'
-    };
-
-    const updatedWallet = await walletsCollection.findOneAndUpdate(
-      { _id: userId },
-      { $inc: { balance: -dogeAmount } },
-      { returnDocument: 'after' }
-    );
-
-    let privateLobbyId;
-
-    if (isPrivateLobby) {
-      privateLobbyId = uuid();
-    }
-
-    const create = await activeCoinFlipsCollection.insertOne({
-      ...coinFlipData,
-      privateLobbyId
-    });
-
-    coinFlipEvents.emit('coinFlipCreated', {
-      ...coinFlipData,
-      _id: create.insertedId.toString()
-    });
-
-    res.send({
-      type: 'ok',
-      message: 'Successfully created coin flip',
-      data: {
-        _id: create.insertedId.toString(),
-        balance: updatedWallet.value.balance,
-        coinFlipData,
-        privateLobbyId
+      if (!userWallet) {
+        return res.status(400).json({
+          type: 'error',
+          message: 'Wallet for user id does not exist'
+        });
       }
-    });
-  } catch (err) {
-    console.log(err);
+
+      if (userWallet.balance < dogeAmount) {
+        return res.status(400).json({
+          type: 'balanceError',
+          message: 'Doge amount cannot be greater than current balance'
+        });
+      }
+
+      const coinFlipData = {
+        createdAt: timestamp,
+        createdByDisplayName: userWallet.displayName,
+        createdByUserId: userId,
+        creatorSide: side,
+        dogeAmount,
+        isPrivateLobby,
+        status: 'active'
+      };
+
+      const updatedWallet = await walletsCollection.findOneAndUpdate(
+        { _id: userId },
+        { $inc: { balance: -dogeAmount } },
+        { returnDocument: 'after' }
+      );
+
+      let privateLobbyId;
+
+      if (isPrivateLobby) {
+        privateLobbyId = uuid();
+      }
+
+      const create = await activeCoinFlipsCollection.insertOne({
+        ...coinFlipData,
+        privateLobbyId
+      });
+
+      coinFlipEvents.emit('coinFlipCreated', {
+        ...coinFlipData,
+        _id: create.insertedId.toString()
+      });
+
+      res.send({
+        type: 'ok',
+        message: 'Successfully created coin flip',
+        data: {
+          _id: create.insertedId.toString(),
+          balance: updatedWallet.value.balance,
+          coinFlipData,
+          privateLobbyId
+        }
+      });
+    } catch (err) {
+      console.log(err);
+    }
   }
-});
+);
 
 router.get('/active', async (req, res) => {
   const resultsPerPage = 50;
@@ -156,21 +158,13 @@ router.get('/coin-flip/:coinFlipId', async (req, res) => {
   return res.json({ type: 'ok', data: activeCoinFlip });
 });
 
-router.post('/join', requireUserAuth, async (req, res) => {
+router.post('/join', requireUserAuth, JoinFlipValidator, async (req, res) => {
+  if (!validationResult(req).isEmpty()) {
+    return res.status(400).json({ type: 'error', message: 'Invalid request' });
+  }
+
   const { coinFlipId, privateLobbyId } = req.body;
   const { userId } = res.locals.userTokenObject;
-
-  if (
-    !coinFlipId ||
-    !userId ||
-    typeof coinFlipId !== 'string' ||
-    typeof userId !== 'string' ||
-    (privateLobbyId && typeof privateLobbyId !== 'string')
-  ) {
-    return res
-      .status(400)
-      .json({ type: 'error', message: 'Invalid parameters' });
-  }
 
   const activeCoinFlipsCollection = getActiveCoinFlipsCollection();
   const activeCoinFlip = await activeCoinFlipsCollection.findOne({
