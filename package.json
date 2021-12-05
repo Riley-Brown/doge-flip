@@ -10,7 +10,7 @@
     "front-end:dev": "npm --prefix front-end run dev",
     "server:dev": "cross-env NODE_PATH=Server ts-node --require dotenv/config Server/index.ts",
     "start:local": "cross-env npm run build:server && cross-env NODE_PATH=dist node --require dotenv/config dist/index.js",
-    "start": "npm run build:server && cross-env NODE_PATH=dist node dist/index.js"
+    "start": "npm i && npm run build:server && cross-env NODE_PATH=dist node dist/index.js"
   },
   "keywords": [],
   "author": "",
