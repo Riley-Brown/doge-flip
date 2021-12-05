@@ -126,7 +126,6 @@ router.get('/active', async (req, res) => {
 
   try {
     const activeCoinFlipsCollection = getActiveCoinFlipsCollection();
-    console.log({ activeCoinFlipsCollection });
     const activeCoinFlips = await activeCoinFlipsCollection
       .find({})
       .project({ privateLobbyId: 0 })
