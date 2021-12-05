@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build:front-end": "npm --prefix front-end run build",
-    "build:server": "tsc",
+    "build:server": "tsc --skipLibCheck",
     "dev": "concurrently \"nodemon\" \"npm run front-end:dev \"",
     "front-end:dev": "npm --prefix front-end run dev",
     "server:dev": "cross-env NODE_PATH=Server ts-node --require dotenv/config Server/index.ts",
