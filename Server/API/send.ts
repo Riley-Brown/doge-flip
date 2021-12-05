@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 import { DOGE_NETWORK } from './root';
 
-export async function sendTransaction({ txHex }) {
+export async function sendTransaction(txHex: string) {
   const res = await fetch(
     `https://sochain.com/api/v2/send_tx/${DOGE_NETWORK}`,
     {
