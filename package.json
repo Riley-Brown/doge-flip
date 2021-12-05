@@ -10,12 +10,20 @@
     "front-end:dev": "npm --prefix front-end run dev",
     "server:dev": "cross-env NODE_PATH=Server ts-node --require dotenv/config Server/index.ts",
     "start:local": "cross-env npm run build:server && cross-env NODE_PATH=dist node --require dotenv/config dist/index.js",
-    "start": "npm i && npm run build:server && cross-env NODE_PATH=dist node dist/index.js"
+    "start": "npm run build:server && cross-env NODE_PATH=dist node dist/index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/cookie-parser": "1.4.2",
+    "@types/cors": "2.8.12",
+    "@types/express": "4.17.13",
+    "@types/morgan": "1.9.3",
+    "@types/node": "16.11.11",
+    "@types/node-fetch": "2.5.12",
+    "@types/redis": "2.8.32",
+    "@types/uuid": "8.3.3",
     "base58": "^2.0.1",
     "bcrypt": "^5.0.1",
     "bitcoinjs-lib": "^5.2.0",
@@ -48,18 +56,6 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@babel/cli": "7.16.0",
-    "@babel/core": "7.16.0",
-    "@babel/preset-env": "7.16.4",
-    "@types/cookie-parser": "1.4.2",
-    "@types/cors": "2.8.12",
-    "@types/express": "4.17.13",
-    "@types/morgan": "1.9.3",
-    "@types/node": "16.11.11",
-    "@types/node-fetch": "2.5.12",
-    "@types/redis": "2.8.32",
-    "@types/uuid": "8.3.3",
-    "babel-plugin-module-resolver": "4.1.0",
     "dotenv": "^10.0.0"
   }
 }
