@@ -1,7 +1,7 @@
 import coinInfo from 'coininfo';
 import bitcoin from 'bitcoinjs-lib';
 
-import { getUnspentTx, sendTransaction, APP_MODE } from '../../API';
+import { getUnspentTx, sendTransaction, APP_MODE } from 'API';
 
 let dogeInfo;
 
@@ -30,9 +30,7 @@ export async function handleSendDogeCoin({
   try {
     const tx = new bitcoin.TransactionBuilder(dogeNetwork);
 
-    const unspentTx = await getUnspentTx({
-      pubAddress: sourceAddress,
-    });
+    const unspentTx = await getUnspentTx(sourceAddress);
 
     let totalSatoshisAvailable = 0;
     let totalInputs = 0;
@@ -75,9 +73,7 @@ export async function handleSendDogeCoin({
 
     const txHex = tx.build().toHex();
 
-    const send = await sendTransaction({
-      txHex,
-    });
+    const send = await sendTransaction(txHex);
 
     console.log({ send });
 

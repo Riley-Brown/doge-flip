@@ -17,7 +17,8 @@ Front-end
 
 Server
 
-- Nodejs
+- Node.js
+- TypeScript
 - Express
 - MongoDB
 

@@ -7,15 +7,15 @@ import EventEmitter from 'events';
 import {
   getWalletsCollection,
   ObjectId,
-  getActiveCoinFlipsCollection
-} from '../../DB';
+  getActiveCoinFlipsCollection,
+} from 'DB';
 
-import { requireUserAuth } from '../../Middleware/authMiddleware';
+import { requireUserAuth } from 'Middleware/authMiddleware';
 
 import {
   CreateFlipValidator,
-  JoinFlipValidator
-} from '../../Middleware/Validators/CoinFlips';
+  JoinFlipValidator,
+} from 'Middleware/Validators/CoinFlips';
 
 const coinFlipEvents = new EventEmitter();
 
@@ -23,7 +23,7 @@ const router = Router();
 
 function generateRandomNumber() {
   const engine = Provable({
-    count: 10000 //default:1, number of hashes in the series to produce, takes longer depending on how big the number is
+    count: 10000, //default:1, number of hashes in the series to produce, takes longer depending on how big the number is
   });
 
   const int32 = engine();
@@ -61,14 +61,14 @@ router.post(
       if (!userWallet) {
         return res.status(400).json({
           type: 'error',
-          message: 'Wallet for user id does not exist'
+          message: 'Wallet for user id does not exist',
         });
       }
 
       if (userWallet.balance < dogeAmount) {
         return res.status(400).json({
           type: 'balanceError',
-          message: 'Doge amount cannot be greater than current balance'
+          message: 'Doge amount cannot be greater than current balance',
         });
       }
 
@@ -79,7 +79,7 @@ router.post(
         creatorSide: side,
         dogeAmount,
         isPrivateLobby,
-        status: 'active'
+        status: 'active',
       };
 
       const updatedWallet = await walletsCollection.findOneAndUpdate(
@@ -96,12 +96,12 @@ router.post(
 
       const create = await activeCoinFlipsCollection.insertOne({
         ...coinFlipData,
-        privateLobbyId
+        privateLobbyId,
       });
 
       coinFlipEvents.emit('coinFlipCreated', {
         ...coinFlipData,
-        _id: create.insertedId.toString()
+        _id: create.insertedId.toString(),
       });
 
       res.send({
@@ -111,8 +111,8 @@ router.post(
           _id: create.insertedId.toString(),
           balance: updatedWallet.value.balance,
           coinFlipData,
-          privateLobbyId
-        }
+          privateLobbyId,
+        },
       });
     } catch (err) {
       console.log(err);
@@ -168,7 +168,7 @@ router.post('/join', requireUserAuth, JoinFlipValidator, async (req, res) => {
 
   const activeCoinFlipsCollection = getActiveCoinFlipsCollection();
   const activeCoinFlip = await activeCoinFlipsCollection.findOne({
-    _id: ObjectId(coinFlipId)
+    _id: ObjectId(coinFlipId),
   });
 
   if (!activeCoinFlip) {
@@ -180,7 +180,7 @@ router.post('/join', requireUserAuth, JoinFlipValidator, async (req, res) => {
   if (activeCoinFlip.status !== 'active') {
     return res.status(400).json({
       type: 'error',
-      message: 'Coin flip is in progress or has already ended'
+      message: 'Coin flip is in progress or has already ended',
     });
   }
 
@@ -188,7 +188,7 @@ router.post('/join', requireUserAuth, JoinFlipValidator, async (req, res) => {
     if (activeCoinFlip.privateLobbyId !== privateLobbyId) {
       return res.status(403).json({
         type: 'privateLobbyAuthError',
-        message: 'Not authorized to join this private coin flip'
+        message: 'Not authorized to join this private coin flip',
       });
     }
   }
@@ -205,7 +205,7 @@ router.post('/join', requireUserAuth, JoinFlipValidator, async (req, res) => {
   if (wallet.balance < activeCoinFlip.dogeAmount) {
     return res.status(400).json({
       type: 'error',
-      message: 'Insufficient balance to join this coin flip'
+      message: 'Insufficient balance to join this coin flip',
     });
   }
 
@@ -220,8 +220,8 @@ router.post('/join', requireUserAuth, JoinFlipValidator, async (req, res) => {
         joinedByUserId: userId,
         joinedByDisplayName: wallet.displayName,
         joinedByUserAt: joinDate,
-        joinedUserSide: side
-      }
+        joinedUserSide: side,
+      },
     },
     { returnDocument: 'after' }
   );
@@ -229,7 +229,7 @@ router.post('/join', requireUserAuth, JoinFlipValidator, async (req, res) => {
   if (!updatedCoinFlip.value) {
     return res.status(400).json({
       type: 'error',
-      message: 'Unable to join non-active Coin Flip'
+      message: 'Unable to join non-active Coin Flip',
     });
   }
 
@@ -253,7 +253,7 @@ router.post('/join', requireUserAuth, JoinFlipValidator, async (req, res) => {
       coinFlipEvents.emit('flipping', {
         ...coinFlipData,
         winningSide,
-        status: 'flipping'
+        status: 'flipping',
       });
 
       await new Promise((res) => {
@@ -282,8 +282,8 @@ router.post('/join', requireUserAuth, JoinFlipValidator, async (req, res) => {
             float,
             hash,
             winningAmount,
-            winnerDisplayName
-          }
+            winnerDisplayName,
+          },
         },
         { returnDocument: 'after' }
       );
@@ -298,7 +298,7 @@ router.post('/join', requireUserAuth, JoinFlipValidator, async (req, res) => {
         startingIn: countDown,
         winningSide,
         winnerId,
-        winningAmount
+        winningAmount,
       });
     } catch (err) {
       console.log(err);
@@ -314,7 +314,7 @@ router.post('/join', requireUserAuth, JoinFlipValidator, async (req, res) => {
 
       coinFlipEvents.emit('inProgress', {
         ...coinFlipData,
-        startingIn: countDown
+        startingIn: countDown,
       });
     }
   }, 1000);
@@ -325,8 +325,8 @@ router.post('/join', requireUserAuth, JoinFlipValidator, async (req, res) => {
     type: 'ok',
     data: {
       balance: updatedWallet.value.balance,
-      coinFlipData: updatedCoinFlip.value
-    }
+      coinFlipData: updatedCoinFlip.value,
+    },
   });
 });
 
@@ -345,7 +345,7 @@ router.get('/events', async (req, res) => {
     return res.write(
       `data: ${JSON.stringify({
         eventType,
-        ...data
+        ...data,
       })}\n\n`
     );
   };
@@ -355,7 +355,7 @@ router.get('/events', async (req, res) => {
     { eventType: 'flipping' },
     { eventType: 'finished' },
     { eventType: 'coinFlipCreated' },
-    { eventType: 'coinFlipClosed' }
+    { eventType: 'coinFlipClosed' },
   ];
 
   events.forEach((event) =>
@@ -384,7 +384,7 @@ router.post('/close', requireUserAuth, async (req, res) => {
 
   const activeCoinFlipsCollection = getActiveCoinFlipsCollection();
   const activeCoinFlip = await activeCoinFlipsCollection.findOne({
-    _id: ObjectId(coinFlipId)
+    _id: ObjectId(coinFlipId),
   });
 
   if (!activeCoinFlip) {
@@ -402,24 +402,24 @@ router.post('/close', requireUserAuth, async (req, res) => {
   if (activeCoinFlip.status !== 'active') {
     return res.status(400).json({
       type: 'error',
-      message: 'Coin flip is in progress or has already ended'
+      message: 'Coin flip is in progress or has already ended',
     });
   }
 
   const closeActiveFlip = await activeCoinFlipsCollection.findOneAndUpdate(
     {
       _id: ObjectId(coinFlipId),
-      status: { $eq: 'active' }
+      status: { $eq: 'active' },
     },
     {
-      $set: { status: 'closed' }
+      $set: { status: 'closed' },
     }
   );
 
   if (!closeActiveFlip.value) {
     return res.status(400).json({
       type: 'error',
-      message: 'Unable to close a non-active Coin Flip'
+      message: 'Unable to close a non-active Coin Flip',
     });
   }
 
@@ -433,14 +433,14 @@ router.post('/close', requireUserAuth, async (req, res) => {
 
   coinFlipEvents.emit('coinFlipClosed', {
     ...activeCoinFlip,
-    status: 'closed'
+    status: 'closed',
   });
 
   res.json({
     type: 'ok',
     data: {
-      balance: updateUserBalance.value.balance
-    }
+      balance: updateUserBalance.value.balance,
+    },
   });
 });
 
