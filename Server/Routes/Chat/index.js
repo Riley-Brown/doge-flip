@@ -3,9 +3,9 @@ import { Server } from 'socket.io';
 import { Router } from 'express';
 import { v4 as uuid } from 'uuid';
 
-import { corsOrigins } from '../../';
+import { corsOrigins } from 'index';
 
-import { handleVerifyAdminToken } from '../../Auth';
+import { handleVerifyAdminToken } from 'Auth';
 
 const router = Router();
 
@@ -20,8 +20,8 @@ export function initSocketIo(server) {
     path: '/socket/chat',
     cors: {
       origin: corsOrigins,
-      credentials: true
-    }
+      credentials: true,
+    },
   });
 
   const handleUpdateTotalChatters = (socketIo) => {
@@ -95,7 +95,7 @@ router.get('/chat-messages', (req, res) => {
   redisClient.lrange('chatMessages', 0, -1, (err, messages) => {
     res.send({
       type: 'ok',
-      data: { messages: messages.map((message) => JSON.parse(message)) }
+      data: { messages: messages.map((message) => JSON.parse(message)) },
     });
   });
 });
