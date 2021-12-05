@@ -1,11 +1,8 @@
-import MongoDB from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 
-export const ObjectId = MongoDB.ObjectId;
+export { ObjectId };
 
-const client = new MongoDB.MongoClient(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
+const client = new MongoClient(process.env.MONGO_URI as string);
 
 client.connect().then(() => {
   console.log('connected to mongo');
