@@ -180,7 +180,7 @@ router.post('/recover', RecoverWalletValidator, async (req, res) => {
   });
 });
 
-router.get('/recovery-key', async (req, res) => {
+router.get('/recovery-key', requireUserAuth, async (req, res) => {
   const { publicAddress } = res.locals.userTokenObject;
 
   if (!publicAddress || typeof publicAddress !== 'string') {
@@ -217,7 +217,7 @@ router.get('/recovery-key', async (req, res) => {
   }
 });
 
-router.post('/reset-recovery-key', async (req, res) => {
+router.post('/reset-recovery-key', requireUserAuth, async (req, res) => {
   const { publicAddress } = res.locals.userTokenObject;
 
   if (!publicAddress || typeof publicAddress !== 'string') {
