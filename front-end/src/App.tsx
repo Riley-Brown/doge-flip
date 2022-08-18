@@ -7,8 +7,6 @@ import './App.scss';
 
 import CoinFlips from 'Pages/CoinFlips';
 
-console.log('test');
-
 const isDarkMode = JSON.parse(localStorage.getItem('darkMode') || 'false');
 
 function App() {
