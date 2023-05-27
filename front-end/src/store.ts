@@ -3,7 +3,7 @@ import logger from 'redux-logger';
 
 import reducers from 'Reducers';
 
-const { NODE_ENV, REACT_APP_MODE } = process.env;
+const  NODE_ENV = import.meta.env.NODE_ENV;
 
 let store: Store;
 let middleware: any[] = [];
