@@ -12,6 +12,7 @@ import { requireUserAuth } from 'Middleware/authMiddleware';
 
 export const corsOrigins = [
   'http://localhost:3000',
+  'http://localhost:5173',
   'https://competent-shannon-ea4b21.netlify.app',
   'https://doge-flip.riley.gg',
 ];
